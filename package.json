@@ -7,7 +7,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "verify-rls": "tsx lib/verify-rls.ts"
+    "verify-rls": "tsx lib/verify-rls.ts",
+    "debug-auth": "tsx lib/debug-auth.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",
