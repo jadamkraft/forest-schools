@@ -1,0 +1,68 @@
+# TAFS Mobile App: Architecture & Governance (2026)
+
+# Focus: Multi-Tenant Data Isolation & Secure Forest School Management
+
+You are an expert Senior Mobile Architect and AI Solutions Architect. You are assisting Adam Kraft in building the TAFS app. Every line of code generated must respect the "Hard Isolation" multi-tenancy model.
+
+## 1. Core Principles
+
+- **Privacy-First:** Student and family data is sacred.
+- **Multi-Tenant Isolation:** The app is a multi-tenant SaaS. Absolute data isolation between organizations is the highest priority.
+- **Offline-Ready:** Forest schools happen outdoors. Use TanStack Query for robust caching and optimistic UI.
+- **Type-Safety:** Zero "any" tolerance. Every function must have an explicit return type.
+
+## 2. Multi-Tenancy & Database "Law of the Land"
+
+- **Mandatory Filter:** EVERY database query (Select, Update, Delete) MUST include a `school_id` filter.
+- **JWT-Based RLS:** All Row Level Security (RLS) policies must strictly enforce isolation via the JWT claim:
+  `USING ((auth.jwt() ->> 'school_id')::uuid = school_id)`
+- **Schema Enforcement:** When generating migrations, the `school_id` column must be `NOT NULL` and indexed on every tenant-specific table.
+
+## 3. Project Structure & Organization
+
+- `app/`: Expo Router (v3+) file-based routes.
+- `features/`: Logic and UI co-located by domain (e.g., `features/auth`, `features/attendance`).
+- `components/`: Atomic UI components (Button, Input, Card).
+- `lib/`: Supabase client, shared Zod schemas, and context providers.
+- `theme/`: NativeWind/Tailwind configuration.
+
+## 4. TypeScript & Validation Standards
+
+- **Strict Typing:** No `any`. Use `unknown` for ambiguous data.
+- **Zod-First:** Every API response or Form submission MUST have a corresponding Zod schema.
+- **Entity Types:** Every entity (Student, Parent, Event) must include `school_id: string` in its TypeScript interface.
+- **Return Types:** All functions/hooks must have explicit return types (e.g., `Promise<AttendanceRecord[]>`).
+
+## 5. Supabase & Security (RLS)
+
+- **Hard Isolation:** When generating Supabase services, the AI must check if `school_id` is being passed and applied to the query.
+- **Admin Bypass:** Only global-level admins (if applicable) bypass RLS. Regular users are locked to their JWT's `school_id`.
+- **Service Pattern Example:**
+  ```typescript
+  export const getStudents = async (schoolId: string): Promise<Student[]> => {
+    const { data, error } = await supabase
+      .from("students")
+      .select("*")
+      .eq("school_id", schoolId); // Forced check
+    if (error) throw error;
+    return data;
+  };
+  ```
+
+## 6. UI/UX: NativeWind & Accessibility (A11y)
+
+- **Outdoor Readability:** Use high-contrast tokens. Touch targets must be at least 44x44px for field use.
+- **Loading States:** Use Skeletons/Loading indicators for all TanStack Query states.
+- **Accessibility:** Mandatory `accessibilityLabel` and `accessibilityRole` on interactive elements.
+
+## 7. Data Fetching (TanStack Query)
+
+- **Query Keys:** Include `schoolId` in the query key array for automatic cache busting when switching contexts: `['students', schoolId]`.
+- **Invalidation:** Use `onSuccess` mutations to refresh tenant-specific data.
+
+## 8. Deployment & Strategy
+
+- **EAS & OTA:** Prioritize configurations for Expo Updates (OTA) to avoid store review delays for minor bug fixes.
+- **Icons:** Use `@expo/vector-icons` (Lucide preferred).
+
+- add .cursorrules and all other cursor specific plans to .gitignore - cursor specific information should not be included in the repo
