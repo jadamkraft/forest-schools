@@ -28,6 +28,14 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "install": {
+      "exclude": [
+        "react",
+        "react-dom",
+        "react-native-web",
+        "@types/react"
+      ]
+    }
   }
 }
