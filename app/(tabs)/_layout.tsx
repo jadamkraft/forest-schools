@@ -25,7 +25,7 @@ export default function TabsLayout(): React.ReactElement {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
       }}
     />
   );

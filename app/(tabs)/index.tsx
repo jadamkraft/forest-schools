@@ -1,7 +1,3 @@
-import { router } from "expo-router";
-import { useAuthContext } from "../../lib/AuthProvider";
-import { useStudents } from "../../features/attendance";
-import type { Student } from "../../features/attendance";
 import {
   ActivityIndicator,
   ScrollView,
@@ -9,7 +5,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useMemo, useState } from "react";
+import { useStudents } from "../../features/attendance";
+import type { Student } from "../../features/attendance";
+import { useCallback, useMemo, useState } from "react";
+import { useAuthContext } from "../../lib/AuthProvider";
 
 function StudentRow({
   student,
@@ -70,19 +72,19 @@ export default function TabsIndexScreen(): React.ReactElement {
   return (
     <View className="flex-1 bg-white">
       <View className="flex-row items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
-        <Text className="text-xl font-semibold text-slate-900">TAFS</Text>
+        <Text className="text-xl font-bold text-slate-900">TAFS</Text>
         <TouchableOpacity
           onPress={handleSignOut}
-          className="min-h-[44px] min-w-[44px] items-center justify-center rounded-lg bg-slate-900 px-4"
+          className="min-h-[44px] min-w-[44px] items-center justify-center rounded-full bg-white"
           accessibilityLabel="Sign out"
           accessibilityRole="button"
         >
-          <Text className="text-base font-medium text-white">Sign out</Text>
+          <Ionicons name="log-out-outline" size={24} color="#0f172a" />
         </TouchableOpacity>
       </View>
 
-      <View className="flex-1 px-4 pt-4">
-        <Text className="mb-3 text-lg font-semibold text-slate-900">Attendance</Text>
+      <View className="flex-1 px-4 pt-6">
+        <Text className="mb-4 text-lg font-semibold text-slate-900">Attendance</Text>
 
         {schoolId == null ? (
           <Text className="text-slate-900">No school assigned.</Text>
