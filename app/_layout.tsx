@@ -12,7 +12,7 @@ export default function RootLayout(): React.ReactElement {
       <AuthProvider>
         <Stack
           screenOptions={{
-            headerShown: true,
+            headerShown: false,
           }}
         />
       </AuthProvider>

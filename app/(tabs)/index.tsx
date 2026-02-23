@@ -10,7 +10,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useMemo, useState } from "react";
 import { useStudents } from "../../features/attendance";
 import type { Student } from "../../features/attendance";
-import { useCallback, useMemo, useState } from "react";
 import { useAuthContext } from "../../lib/AuthProvider";
 
 function StudentRow({
