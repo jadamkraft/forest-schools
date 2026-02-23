@@ -1,6 +1,6 @@
 import { Redirect } from "expo-router";
 import { Stack } from "expo-router";
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useAuthContext } from "../../lib/AuthProvider";
 
 export default function TabsLayout(): React.ReactElement {
@@ -8,9 +8,9 @@ export default function TabsLayout(): React.ReactElement {
 
   if (isLoading) {
     return (
-      <>
-        <ActivityIndicator size="large" />
-      </>
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" accessibilityLabel="Loading" />
+      </View>
     );
   }
 
@@ -30,3 +30,12 @@ export default function TabsLayout(): React.ReactElement {
     />
   );
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+  },
+});
