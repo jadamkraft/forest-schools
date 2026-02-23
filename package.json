@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
+    "start": "cross-env NODE_OPTIONS=--experimental-vm-modules npx expo start",
+    "android": "cross-env NODE_OPTIONS=--experimental-vm-modules npx expo start --android",
+    "ios": "cross-env NODE_OPTIONS=--experimental-vm-modules npx expo start --ios",
+    "web": "cross-env NODE_OPTIONS=--experimental-vm-modules npx expo start --web",
+    "start:loader": "cross-env NODE_OPTIONS=--experimental-vm-modules node --loader tsx ./node_modules/expo/bin/cli.js start",
     "verify-rls": "tsx lib/verify-rls.ts",
     "debug-auth": "tsx lib/debug-auth.ts"
   },
@@ -33,7 +34,8 @@
     "dotenv": "^16.4.5",
     "jwt-decode": "^4.0.0",
     "tsx": "^4.19.2",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "cross-env": "^7.0.3"
   },
   "private": true
 }
