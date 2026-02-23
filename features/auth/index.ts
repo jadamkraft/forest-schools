@@ -1,2 +1,3 @@
-// Auth feature: login, session, types. Re-export public API here.
-export {};
+export { useAuth } from "./useAuth";
+export type { AuthState, AppMetadataWithSchoolId } from "./types";
+export { getSchoolIdFromSession } from "./types";

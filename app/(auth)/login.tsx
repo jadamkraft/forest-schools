@@ -1,5 +1,5 @@
-import { getSupabase } from "../../lib/supabase";
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
+import { useAuthContext } from "../../lib/AuthProvider";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -13,10 +13,13 @@ import {
   View,
 } from "react-native";
 
+const DEV_PREFILL_EMAIL = "tafs-admin@test.local";
+
 export default function LoginScreen(): React.ReactElement {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { session, isLoading, signIn } = useAuthContext();
+  const [email, setEmail] = useState<string>(__DEV__ ? DEV_PREFILL_EMAIL : "");
+  const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleLogin = async (): Promise<void> => {
     const trimmedEmail = email.trim();
@@ -26,19 +29,28 @@ export default function LoginScreen(): React.ReactElement {
     }
     setLoading(true);
     try {
-      const { error } = await getSupabase().auth.signInWithPassword({
-        email: trimmedEmail,
-        password,
-      });
-      if (error) {
-        Alert.alert("Login failed", error.message);
-        return;
-      }
-      router.replace("/home");
+      await signIn(trimmedEmail, password);
+      router.replace("/(tabs)");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Login failed.";
+      Alert.alert("Login failed", message);
+      return;
     } finally {
       setLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" accessibilityLabel="Loading" />
+      </View>
+    );
+  }
+
+  if (session) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   return (
     <KeyboardAvoidingView
@@ -50,6 +62,7 @@ export default function LoginScreen(): React.ReactElement {
         <TextInput
           style={styles.input}
           placeholder="Email"
+          placeholderTextColor="#5a5a5a"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -62,6 +75,7 @@ export default function LoginScreen(): React.ReactElement {
         <TextInput
           style={styles.input}
           placeholder="Password"
+          placeholderTextColor="#5a5a5a"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -93,6 +107,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 24,
+    backgroundColor: "#f5f5f5",
+  },
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
   },
   form: {
     gap: 16,
@@ -100,23 +121,28 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     marginBottom: 8,
+    color: "#1a1a1a",
+    fontWeight: "600",
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
+    borderWidth: 2,
+    borderColor: "#1a1a1a",
     borderRadius: 8,
     padding: 12,
     minHeight: 44,
     fontSize: 16,
+    color: "#1a1a1a",
+    backgroundColor: "#fff",
   },
   button: {
     minHeight: 44,
     minWidth: 44,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#333",
+    backgroundColor: "#1a1a1a",
     borderRadius: 8,
     marginTop: 8,
+    paddingHorizontal: 24,
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -124,5 +150,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 16,
+    fontWeight: "600",
   },
 });

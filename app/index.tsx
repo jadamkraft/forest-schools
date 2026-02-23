@@ -1,27 +1,27 @@
 import { Redirect } from "expo-router";
-import { getSupabase } from "../lib/supabase";
-import { useEffect, useState } from "react";
+import { useAuthContext } from "../lib/AuthProvider";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 export default function IndexScreen(): React.ReactElement {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const { session, isLoading } = useAuthContext();
 
-  useEffect(() => {
-    getSupabase().auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-    });
-    const {
-      data: { subscription },
-    } = getSupabase().auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (isAuthenticated === null) {
-    return <></>;
+  if (isLoading) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" accessibilityLabel="Loading" />
+      </View>
+    );
   }
-  if (isAuthenticated) {
-    return <Redirect href="/home" />;
+  if (session) {
+    return <Redirect href="/(tabs)" />;
   }
   return <Redirect href="/login" />;
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});
