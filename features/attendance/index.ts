@@ -1,2 +1,4 @@
 // Attendance feature: logic and UI co-located. Re-export public API here.
-export {};
+export type { Student, StudentSchema } from "./types";
+export { studentSchema } from "./types";
+export { fetchStudents, useStudents, studentsQueryKey } from "./api";
