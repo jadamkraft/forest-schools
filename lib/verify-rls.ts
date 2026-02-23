@@ -6,6 +6,7 @@
 
 import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";
+import { jwtDecode } from "jwt-decode";
 
 const TULSA_SCHOOL_ID = "a0000001-0000-4000-8000-000000000001";
 
@@ -29,6 +30,12 @@ async function main(): Promise<void> {
     }
     console.log("Signed in as:", authData.user?.email);
     console.log("app_metadata.school_id:", authData.session?.user?.app_metadata?.school_id);
+    const token = authData.session?.access_token;
+    if (token) {
+      const payload = jwtDecode<{ school_id?: string }>(token);
+      console.log("Decoded JWT payload:", payload);
+      console.log("JWT school_id:", payload.school_id ?? "(missing)");
+    }
   } else {
     console.log("No TEST_USER_EMAIL/TEST_USER_PASSWORD set; using anonymous session (expect 0 students).");
   }
