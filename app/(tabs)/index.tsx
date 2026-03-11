@@ -8,7 +8,7 @@ import {
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useMemo, useState } from "react";
-import { useStudents } from "../../features/attendance";
+import { useLogAttendanceMutation, useStudents } from "../../features/attendance";
 import type { Student } from "../../features/attendance";
 import { useAuthContext } from "../../lib/AuthProvider";
 
@@ -52,19 +52,31 @@ export default function TabsIndexScreen(): React.ReactElement {
   const { signOut, schoolId } = useAuthContext();
   const { data: students, isLoading, isError, error, refetch } = useStudents(schoolId);
   const [checkedInIds, setCheckedInIds] = useState<Set<string>>(() => new Set());
+  const logAttendanceMutation = useLogAttendanceMutation(schoolId);
 
   const handleSignOut = useCallback((): void => {
     signOut().then(() => router.replace("/login"));
   }, [signOut]);
 
-  const handleToggleCheckIn = useCallback((id: string): void => {
-    setCheckedInIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
+  const handleToggleCheckIn = useCallback(
+    (id: string): void => {
+      setCheckedInIds((prev) => {
+        const next = new Set(prev);
+        const wasCheckedIn = next.has(id);
+        if (wasCheckedIn) {
+          next.delete(id);
+        } else {
+          next.add(id);
+        }
+
+        const nextStatus = wasCheckedIn ? "absent" : "present";
+        logAttendanceMutation.mutate({ studentId: id, status: nextStatus });
+
+        return next;
+      });
+    },
+    [logAttendanceMutation],
+  );
 
   const roster = useMemo(() => students ?? [], [students]);
 
