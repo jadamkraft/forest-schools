@@ -1,15 +1,15 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# dependencies
+## Dependencies
 node_modules/
 
-# Expo
+## Expo / bundler output
 .expo/
 dist/
 web-build/
 expo-env.d.ts
 
-# Native
+## Native build / signing artifacts
 .kotlin/
 *.orig.*
 *.jks
@@ -17,26 +17,49 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+*.pem
 
-# Metro
+## Metro
 .metro-health-check*
 
-# debug
+## Debug logs
 npm-debug.*
 yarn-debug.*
 yarn-error.*
 
-# macOS
+## macOS
 .DS_Store
-*.pem
 
-# local env files
+## Local env files (source of truth is .env.example)
 .env
 .env*.local
 
-# typescript
+## TypeScript
 *.tsbuildinfo
 
-# generated native folders
+## Generated native folders
 /ios
 /android
+
+## Supabase (local dev only)
+.supabase/
+supabase/.branches
+supabase/.temp/
+
+## Docker (local overrides, not infra definitions)
+docker-compose.override.yml
+docker-compose.*.yml
+*.docker-compose.local.yml
+*.local.yml
+*.override.yml
+*.env.docker.local
+**/.docker/
+
+## Editor / IDE metadata
+.vscode/
+.idea/
+.cursor/
+*.iml
+*.swp
+*.swo
+

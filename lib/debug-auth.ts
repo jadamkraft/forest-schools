@@ -1,7 +1,13 @@
 /**
- * Temporary diagnostic script for "Invalid login credentials" when running verify-rls.
+ * Internal diagnostic tool for Supabase Auth and multi-tenant setup.
+ * - Used to debug "Invalid login credentials" and test password resets.
+ * - Verifies behavior of the Supabase Auth layer for this project’s tenants.
+ *
  * Run: npm run debug-auth (or npx tsx lib/debug-auth.ts)
  * Set SUPABASE_SERVICE_ROLE_KEY in .env for admin steps (list users, optional password reset).
+ *
+ * This script is not part of the shipped mobile client. Console output is
+ * guarded with __DEV__ so that logs are limited to development usage.
  */
 
 import "dotenv/config";
@@ -44,35 +50,51 @@ async function main(): Promise<void> {
   const debugResetPassword = process.env.DEBUG_RESET_PASSWORD;
 
   if (!url || !anonKey) {
-    console.error("Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY. Copy .env.example to .env.");
+    if (__DEV__) {
+      console.error("Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY. Copy .env.example to .env.");
+    }
     process.exit(1);
   }
 
-  console.log("Supabase URL (masked):", maskSupabaseUrl(url));
-  console.log("Email (masked):", email ? maskEmail(email) : "(not set)");
+  if (__DEV__) {
+    console.log("Supabase URL (masked):", maskSupabaseUrl(url));
+    console.log("Email (masked):", email ? maskEmail(email) : "(not set)");
+  }
 
   const supabase = createClient(url, anonKey);
 
   const { data: { user: userBefore } } = await supabase.auth.getUser();
   if (userBefore) {
-    console.log("getUser() before sign-in: user id", maskUserId(userBefore.id));
+    if (__DEV__) {
+      console.log("getUser() before sign-in: user id", maskUserId(userBefore.id));
+    }
   } else {
-    console.log("getUser() before sign-in: none");
+    if (__DEV__) {
+      console.log("getUser() before sign-in: none");
+    }
   }
 
   if (email && password) {
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
     if (authError) {
-      console.log("Sign-in result: failed —", authError.message);
+      if (__DEV__) {
+        console.log("Sign-in result: failed —", authError.message);
+      }
     } else {
-      console.log("Sign-in result: ok, user id", authData.user ? maskUserId(authData.user.id) : "?");
+      if (__DEV__) {
+        console.log("Sign-in result: ok, user id", authData.user ? maskUserId(authData.user.id) : "?");
+      }
     }
   } else {
-    console.log("Sign-in: skipped (TEST_USER_EMAIL or TEST_USER_PASSWORD not set)");
+    if (__DEV__) {
+      console.log("Sign-in: skipped (TEST_USER_EMAIL or TEST_USER_PASSWORD not set)");
+    }
   }
 
   if (!serviceRoleKey) {
-    console.log("\nService Role Key: not set — skipping admin steps (list users / password reset).");
+    if (__DEV__) {
+      console.log("\nService Role Key: not set — skipping admin steps (list users / password reset).");
+    }
     return;
   }
 
@@ -80,7 +102,9 @@ async function main(): Promise<void> {
 
   const { data: listData, error: listError } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
   if (listError) {
-    console.log("\nadmin.listUsers(): failed —", listError.message);
+    if (__DEV__) {
+      console.log("\nadmin.listUsers(): failed —", listError.message);
+    }
     return;
   }
 
@@ -88,15 +112,21 @@ async function main(): Promise<void> {
   const testUser = email ? users.find((u) => u.email === email) : null;
 
   if (testUser) {
-    console.log("\nTest user in auth: found, id", maskUserId(testUser.id));
+    if (__DEV__) {
+      console.log("\nTest user in auth: found, id", maskUserId(testUser.id));
+    }
   } else {
-    console.log("\nTest user in auth: not found (email may differ or user not created in this project).");
+    if (__DEV__) {
+      console.log("\nTest user in auth: not found (email may differ or user not created in this project).");
+    }
     return;
   }
 
   const passwordToSet = debugResetPassword ?? password;
   if (!passwordToSet) {
-    console.log("Password reset: skipped — neither DEBUG_RESET_PASSWORD nor TEST_USER_PASSWORD set.");
+    if (__DEV__) {
+      console.log("Password reset: skipped — neither DEBUG_RESET_PASSWORD nor TEST_USER_PASSWORD set.");
+    }
     return;
   }
 
@@ -105,9 +135,13 @@ async function main(): Promise<void> {
   });
 
   if (updateError) {
-    console.log("Password reset: failed —", updateError.message);
+    if (__DEV__) {
+      console.log("Password reset: failed —", updateError.message);
+    }
   } else {
-    console.log("Password reset: ok (try verify-rls again with the same credentials).");
+    if (__DEV__) {
+      console.log("Password reset: ok (try verify-rls again with the same credentials).");
+    }
   }
 }
 

@@ -1,7 +1,13 @@
 /**
- * RLS verification script: fetch students via Supabase client and assert that
- * when logged in with school_id in JWT, only that school's students are returned.
- * Run: npm run verify-rls (set TEST_USER_EMAIL and TEST_USER_PASSWORD in .env to sign in).
+ * Internal diagnostic tool to verify RLS and JWT-based multi-tenant behavior.
+ *
+ * - Signs in with a test user and decodes the Supabase JWT.
+ * - Asserts that only students for the expected school_id are returned.
+ *
+ * Run: npm run verify-rls (set TEST_USER_EMAIL and TEST_USER_PASSWORD in .env).
+ *
+ * This script is not part of the shipped mobile client. Console output is
+ * guarded with __DEV__ so that logs are limited to development usage.
  */
 
 import "dotenv/config";
@@ -14,7 +20,9 @@ async function main(): Promise<void> {
   const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
   const key = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) {
-    console.error("Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY. Copy .env.example to .env.");
+    if (__DEV__) {
+      console.error("Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY. Copy .env.example to .env.");
+    }
     process.exit(1);
   }
 
@@ -25,19 +33,27 @@ async function main(): Promise<void> {
   if (email && password) {
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
     if (authError) {
-      console.error("Sign-in failed:", authError.message);
+      if (__DEV__) {
+        console.error("Sign-in failed:", authError.message);
+      }
       process.exit(1);
     }
-    console.log("Signed in as:", authData.user?.email);
-    console.log("app_metadata.school_id:", authData.session?.user?.app_metadata?.school_id);
+    if (__DEV__) {
+      console.log("Signed in as:", authData.user?.email);
+      console.log("app_metadata.school_id:", authData.session?.user?.app_metadata?.school_id);
+    }
     const token = authData.session?.access_token;
     if (token) {
       const payload = jwtDecode<{ school_id?: string }>(token);
-      console.log("Decoded JWT payload:", payload);
-      console.log("JWT school_id:", payload.school_id ?? "(missing)");
+      if (__DEV__) {
+        console.log("Decoded JWT payload:", payload);
+        console.log("JWT school_id:", payload.school_id ?? "(missing)");
+      }
     }
   } else {
-    console.log("No TEST_USER_EMAIL/TEST_USER_PASSWORD set; using anonymous session (expect 0 students).");
+    if (__DEV__) {
+      console.log("No TEST_USER_EMAIL/TEST_USER_PASSWORD set; using anonymous session (expect 0 students).");
+    }
   }
 
   const { data: students, error } = await supabase
@@ -45,7 +61,9 @@ async function main(): Promise<void> {
     .select("id, school_id, first_name, last_name");
 
   if (error) {
-    console.error("Fetch students error:", error.message);
+    if (__DEV__) {
+      console.error("Fetch students error:", error.message);
+    }
     process.exit(1);
   }
 
@@ -54,26 +72,36 @@ async function main(): Promise<void> {
   const allSameSchool =
     count > 0 && students!.every((s) => String(s.school_id) === expectedSchoolId);
 
-  console.log("\nStudents count:", count);
-  if (count > 0) {
-    console.log("Sample rows:", students!.slice(0, 2));
-    console.log("All rows have school_id =", expectedSchoolId, "?", allSameSchool);
+  if (__DEV__) {
+    console.log("\nStudents count:", count);
+    if (count > 0) {
+      console.log("Sample rows:", students!.slice(0, 2));
+      console.log("All rows have school_id =", expectedSchoolId, "?", allSameSchool);
+    }
   }
 
   if (email && password) {
     const passed = count === 5 && allSameSchool;
     if (passed) {
-      console.log("\n[PASS] RLS: saw exactly 5 students for Tulsa school.");
+      if (__DEV__) {
+        console.log("\n[PASS] RLS: saw exactly 5 students for Tulsa school.");
+      }
     } else {
-      console.log("\n[FAIL] RLS: expected 5 students for school", expectedSchoolId, "; got", count, "with correct school_id:", allSameSchool);
-      console.log("Ensure app_metadata.school_id is set to", expectedSchoolId, "for the test user and session refreshed.");
+      if (__DEV__) {
+        console.log("\n[FAIL] RLS: expected 5 students for school", expectedSchoolId, "; got", count, "with correct school_id:", allSameSchool);
+        console.log("Ensure app_metadata.school_id is set to", expectedSchoolId, "for the test user and session refreshed.");
+      }
       process.exit(1);
     }
   } else {
     if (count === 0) {
-      console.log("\n[OK] No session/school_id: 0 students (RLS blocking as expected).");
+      if (__DEV__) {
+        console.log("\n[OK] No session/school_id: 0 students (RLS blocking as expected).");
+      }
     } else {
-      console.log("\n[INFO] Got", count, "students without test credentials (unexpected; check JWT).");
+      if (__DEV__) {
+        console.log("\n[INFO] Got", count, "students without test credentials (unexpected; check JWT).");
+      }
     }
   }
 }
