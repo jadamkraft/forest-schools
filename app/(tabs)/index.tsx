@@ -1,16 +1,11 @@
-import {
-  ActivityIndicator,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useMemo, useState } from "react";
 import { useLogAttendanceMutation, useStudents } from "../../features/attendance";
 import type { Student } from "../../features/attendance";
 import { useAuthContext } from "../../lib/AuthProvider";
+import { StudentEmergencyCard } from "../../features/attendance/StudentEmergencyCard";
 
 function StudentRow({
   student,
@@ -25,13 +20,19 @@ function StudentRow({
   const handlePress = useCallback(() => onToggleCheckIn(student.id), [student.id, onToggleCheckIn]);
 
   return (
-    <View
-      className="min-h-[60px] flex-row items-center justify-between border-b border-slate-200 bg-white px-4"
-      accessibilityRole="none"
-    >
-      <Text className="text-lg text-slate-900" numberOfLines={1}>
-        {label}
-      </Text>
+    <View className="min-h-[60px] flex-row items-center justify-between border-b border-slate-200 bg-white px-4">
+      <TouchableOpacity
+        onPress={() => {
+          // The parent wraps this row to handle opening the emergency detail modal.
+        }}
+        className="flex-1 pr-4"
+        accessibilityRole="button"
+        accessibilityLabel={`View emergency details for ${label}`}
+      >
+        <Text className="text-lg text-slate-900" numberOfLines={1}>
+          {label}
+        </Text>
+      </TouchableOpacity>
       <TouchableOpacity
         onPress={handlePress}
         className={`min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border-2 px-4 ${
@@ -52,6 +53,7 @@ export default function TabsIndexScreen(): React.ReactElement {
   const { signOut, schoolId } = useAuthContext();
   const { data: students, isLoading, isError, error, refetch } = useStudents(schoolId);
   const [checkedInIds, setCheckedInIds] = useState<Set<string>>(() => new Set());
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const logAttendanceMutation = useLogAttendanceMutation(schoolId);
 
   const handleSignOut = useCallback((): void => {
@@ -79,6 +81,15 @@ export default function TabsIndexScreen(): React.ReactElement {
   );
 
   const roster = useMemo(() => students ?? [], [students]);
+  const isEmergencyCardOpen = selectedStudent != null;
+
+  const handleOpenEmergencyCard = useCallback((student: Student): void => {
+    setSelectedStudent(student);
+  }, []);
+
+  const handleCloseEmergencyCard = useCallback((): void => {
+    setSelectedStudent(null);
+  }, []);
 
   return (
     <View className="flex-1 bg-white">
@@ -123,16 +134,38 @@ export default function TabsIndexScreen(): React.ReactElement {
         ) : (
           <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }}>
             {roster.map((student) => (
-              <StudentRow
+              <TouchableOpacity
                 key={student.id}
-                student={student}
-                checkedIn={checkedInIds.has(student.id)}
-                onToggleCheckIn={handleToggleCheckIn}
-              />
+                activeOpacity={0.8}
+                onPress={() => {
+                  handleOpenEmergencyCard(student);
+                }}
+              >
+                <StudentRow
+                  student={student}
+                  checkedIn={checkedInIds.has(student.id)}
+                  onToggleCheckIn={handleToggleCheckIn}
+                />
+              </TouchableOpacity>
             ))}
           </ScrollView>
         )}
       </View>
+
+      <Modal
+        visible={isEmergencyCardOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={handleCloseEmergencyCard}
+      >
+        <View className="flex-1 justify-end bg-black/40">
+          <View className="px-2 pb-4 pt-8">
+            {selectedStudent != null && (
+              <StudentEmergencyCard student={selectedStudent} onClose={handleCloseEmergencyCard} />
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

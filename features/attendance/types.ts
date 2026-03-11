@@ -10,6 +10,11 @@ export interface Student {
   first_name: string;
   last_name: string;
   date_of_birth: string | null;
+  primary_contact_name?: string | null;
+  primary_contact_phone?: string | null;
+  secondary_contact_name?: string | null;
+  secondary_contact_phone?: string | null;
+  medical_info?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -21,6 +26,11 @@ export const studentSchema = z.object({
   first_name: z.string(),
   last_name: z.string(),
   date_of_birth: z.string().nullable(),
+  primary_contact_name: z.string().nullable().optional(),
+  primary_contact_phone: z.string().nullable().optional(),
+  secondary_contact_name: z.string().nullable().optional(),
+  secondary_contact_phone: z.string().nullable().optional(),
+  medical_info: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });
