@@ -1,4 +1,4 @@
-import { useAuthContext } from "../../../lib/AuthProvider";
+import { useAuthContext } from "@/lib/AuthProvider";
 import { useUpsertRsvpMutation } from "../api";
 import type { RsvpStatus } from "../types";
 import { Text, TouchableOpacity, View } from "react-native";

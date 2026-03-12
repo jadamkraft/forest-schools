@@ -2,11 +2,11 @@ import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { useMemo } from "react";
 import { format } from "date-fns";
-import { useAuthContext } from "../../../lib/AuthProvider";
-import { useClassesForRange } from "../../../features/calendar";
-import { RsvpButtons } from "../../../features/calendar/components/RsvpButtons";
-import type { Student } from "../../../features/attendance";
-import { useStudents } from "../../../features/attendance";
+import { useAuthContext } from "@/lib/AuthProvider";
+import { useClassesForRange } from "@/features/calendar";
+import { RsvpButtons } from "@/features/calendar/components/RsvpButtons";
+import type { Student } from "@/features/attendance";
+import { useStudents } from "@/features/attendance";
 
 export default function ClassDetailScreen(): React.ReactElement {
   const { classId } = useLocalSearchParams<{ classId: string }>();

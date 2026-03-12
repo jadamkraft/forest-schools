@@ -2,7 +2,7 @@ import React from "react";
 import { Redirect, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { useAuthContext } from "../../lib/AuthProvider";
+import { useAuthContext } from "@/lib/AuthProvider";
 
 export default function TabsLayout(): React.ReactElement {
   const { session, isLoading } = useAuthContext();
@@ -74,3 +74,4 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
 });
+

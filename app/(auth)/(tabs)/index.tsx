@@ -2,10 +2,10 @@ import { ActivityIndicator, Modal, ScrollView, Text, TouchableOpacity, View } fr
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useMemo, useState } from "react";
-import { useLogAttendanceMutation, useStudents } from "../../features/attendance";
-import type { Student } from "../../features/attendance";
-import { useAuthContext } from "../../lib/AuthProvider";
-import { StudentEmergencyCard } from "../../features/attendance/StudentEmergencyCard";
+import { useLogAttendanceMutation, useStudents } from "@/features/attendance";
+import type { Student } from "@/features/attendance";
+import { useAuthContext } from "@/lib/AuthProvider";
+import { StudentEmergencyCard } from "@/features/attendance/StudentEmergencyCard";
 
 function StudentRow({
   student,
@@ -164,3 +164,4 @@ export default function TabsIndexScreen(): React.ReactElement {
     </View>
   );
 }
+

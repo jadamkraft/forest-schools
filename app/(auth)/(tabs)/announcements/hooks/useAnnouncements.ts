@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Database } from "../../../../src/types/supabase";
-import { getSupabase } from "../../../../lib/supabase";
+import type { Database } from "@/src/types/supabase";
+import { getSupabase } from "@/lib/supabase";
 
 type AnnouncementRow = Database["public"]["Tables"]["announcements"]["Row"];
 type AnnouncementReadRow = Database["public"]["Tables"]["announcement_reads"]["Row"];

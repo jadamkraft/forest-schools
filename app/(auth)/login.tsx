@@ -1,5 +1,5 @@
 import { Redirect, router } from "expo-router";
-import { useAuthContext } from "../../lib/AuthProvider";
+import { useAuthContext } from "@/lib/AuthProvider";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -30,7 +30,7 @@ export default function LoginScreen(): React.ReactElement {
     setLoading(true);
     try {
       await signIn(trimmedEmail, password);
-      router.replace("/(tabs)");
+      router.replace("/(auth)/(tabs)");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Login failed.";
       Alert.alert("Login failed", message);
@@ -49,7 +49,7 @@ export default function LoginScreen(): React.ReactElement {
   }
 
   if (session) {
-    return <Redirect href="/(tabs)" />;
+    return <Redirect href="/(auth)/(tabs)" />;
   }
 
   return (

@@ -1,9 +1,9 @@
 import { addDays, formatISO, startOfDay } from "date-fns";
 import { ActivityIndicator, Text, View } from "react-native";
 import { useMemo } from "react";
-import { useAuthContext } from "../../../lib/AuthProvider";
-import { useClassesForRange } from "../../../features/calendar";
-import { CalendarDayList } from "../../../features/calendar/components/CalendarDayList";
+import { useAuthContext } from "@/lib/AuthProvider";
+import { useClassesForRange } from "@/features/calendar";
+import { CalendarDayList } from "@/features/calendar/components/CalendarDayList";
 
 export default function CalendarIndexScreen(): React.ReactElement {
   const { schoolId } = useAuthContext();

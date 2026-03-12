@@ -1,6 +1,6 @@
 import { ActivityIndicator, Text, View } from "react-native";
 import { useCallback } from "react";
-import { useAuthContext } from "../../../lib/AuthProvider";
+import { useAuthContext } from "@/lib/AuthProvider";
 import { useAnnouncements } from "./hooks/useAnnouncements";
 import { useMarkAnnouncementRead } from "./hooks/useMarkAnnouncementRead";
 import { AnnouncementList } from "./AnnouncementList";

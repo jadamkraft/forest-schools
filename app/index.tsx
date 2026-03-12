@@ -1,5 +1,5 @@
 import { Redirect } from "expo-router";
-import { useAuthContext } from "../lib/AuthProvider";
+import { useAuthContext } from "@/lib/AuthProvider";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 export default function IndexScreen(): React.ReactElement {
@@ -13,7 +13,7 @@ export default function IndexScreen(): React.ReactElement {
     );
   }
   if (session) {
-    return <Redirect href="/(tabs)" />;
+    return <Redirect href="/(auth)/(tabs)" />;
   }
   return <Redirect href="/login" />;
 }
