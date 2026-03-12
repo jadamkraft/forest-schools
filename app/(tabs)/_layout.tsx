@@ -53,6 +53,15 @@ export default function TabsLayout(): React.ReactElement {
           ),
         }}
       />
+      <Tabs.Screen
+        name="announcements"
+        options={{
+          title: "Announcements",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="megaphone-outline" size={size ?? 22} color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
