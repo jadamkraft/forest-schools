@@ -21,21 +21,14 @@ function StudentRow({
 
   return (
     <View className="min-h-[60px] flex-row items-center justify-between border-b border-slate-200 bg-white px-4">
-      <TouchableOpacity
-        onPress={() => {
-          // The parent wraps this row to handle opening the emergency detail modal.
-        }}
-        className="flex-1 pr-4"
-        accessibilityRole="button"
-        accessibilityLabel={`View emergency details for ${label}`}
-      >
+      <View className="flex-1 pr-4">
         <Text className="text-lg text-slate-900" numberOfLines={1}>
           {label}
         </Text>
-      </TouchableOpacity>
+      </View>
       <TouchableOpacity
         onPress={handlePress}
-        className={`min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border-2 px-4 ${
+        className={`min-h-[60px] min-w-[60px] items-center justify-center rounded-lg border-2 px-4 ${
           checkedIn ? "border-slate-900 bg-slate-900" : "border-slate-900 bg-white"
         }`}
         accessibilityLabel={checkedIn ? `${label} checked in` : `Check in ${label}`}
@@ -140,6 +133,8 @@ export default function TabsIndexScreen(): React.ReactElement {
                 onPress={() => {
                   handleOpenEmergencyCard(student);
                 }}
+                accessibilityRole="button"
+                accessibilityLabel={`View emergency details for ${student.first_name} ${student.last_name}`}
               >
                 <StudentRow
                   student={student}

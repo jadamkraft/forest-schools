@@ -1,5 +1,6 @@
-import { Redirect } from "expo-router";
-import { Stack } from "expo-router";
+import React from "react";
+import { Redirect, Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useAuthContext } from "../../lib/AuthProvider";
 
@@ -23,11 +24,36 @@ export default function TabsLayout(): React.ReactElement {
   }
 
   return (
-    <Stack
+    <Tabs
       screenOptions={{
         headerShown: false,
+        tabBarActiveTintColor: "#0f172a",
+        tabBarInactiveTintColor: "#64748b",
+        tabBarStyle: {
+          backgroundColor: "#ffffff",
+          borderTopColor: "#e5e7eb",
+        },
       }}
-    />
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "Attendance",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="checkbox-outline" size={size ?? 22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="calendar"
+        options={{
+          title: "Calendar",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calendar-outline" size={size ?? 22} color={color} />
+          ),
+        }}
+      />
+    </Tabs>
   );
 }
 

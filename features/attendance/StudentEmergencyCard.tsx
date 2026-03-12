@@ -47,7 +47,7 @@ export function StudentEmergencyCard({ student, onClose }: StudentEmergencyCardP
         </View>
         <TouchableOpacity
           onPress={onClose}
-          className="min-h-[44px] min-w-[44px] items-center justify-center rounded-full bg-white"
+          className="min-h-[60px] min-w-[60px] items-center justify-center rounded-full bg-white"
           accessibilityLabel="Close emergency contact details"
           accessibilityRole="button"
         >
