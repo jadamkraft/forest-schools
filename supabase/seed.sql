@@ -129,14 +129,22 @@ accounts AS (
 -- 5. Core auth users: fixed UUIDs with password "password123"
 INSERT INTO auth.users (
   id,
+  instance_id,
+  aud,
+  role,
   email,
   encrypted_password,
   email_confirmed_at,
   raw_app_meta_data,
-  raw_user_meta_data
+  raw_user_meta_data,
+  created_at,
+  updated_at
 )
 SELECT
   a.id,
+  '00000000-0000-0000-0000-000000000000'::uuid,
+  'authenticated',
+  'authenticated',
   a.email,
   -- bcrypt hash for the password "password123"
   '$2a$10$Q2fP33N1Ic99fXjqS0HP7OuS96NLuT2FDjFb1pTqA2x4cOTV12k8u'::text,
@@ -148,12 +156,53 @@ SELECT
   ),
   jsonb_build_object(
     'full_name', a.full_name
-  )
+  ),
+  now(),
+  now()
 FROM accounts a
 ON CONFLICT (id) DO UPDATE
 SET
   raw_app_meta_data = EXCLUDED.raw_app_meta_data,
   raw_user_meta_data = EXCLUDED.raw_user_meta_data;
+
+-- 5b. Email identities for core auth users (required for Auth UI + login)
+WITH accounts AS (
+  SELECT *
+  FROM (VALUES
+    ('00000000-0000-0000-0000-000000000001'::uuid, 'admin@test.com'),
+    ('00000000-0000-0000-0000-000000000002'::uuid, 'staff@test.com'),
+    ('00000000-0000-0000-0000-000000000003'::uuid, 'parent@test.com')
+  ) AS a(id, email)
+)
+INSERT INTO auth.identities (
+  id,
+  user_id,
+  identity_data,
+  provider,
+  provider_id,
+  last_sign_in_at,
+  created_at,
+  updated_at
+)
+SELECT
+  a.id,
+  a.id,
+  jsonb_build_object(
+    'sub', a.id::text,
+    'email', a.email
+  ),
+  'email',
+  a.id::text,
+  now(),
+  now(),
+  now()
+FROM accounts a
+ON CONFLICT (id) DO UPDATE
+SET
+  identity_data = EXCLUDED.identity_data,
+  provider = EXCLUDED.provider,
+  provider_id = EXCLUDED.provider_id,
+  updated_at = EXCLUDED.updated_at;
 
 -- 6. Profiles for core auth users (depends on auth.users)
 WITH school AS (
