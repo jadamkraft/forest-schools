@@ -3,9 +3,12 @@ import { Redirect, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useAuthContext } from "@/lib/AuthProvider";
+import { useWaiverStatus } from "@/features/waivers/useWaiverStatus";
 
 export default function TabsLayout(): React.ReactElement {
-  const { session, isLoading } = useAuthContext();
+  const { session, schoolId, isLoading } = useAuthContext();
+
+  const waiverStatus = useWaiverStatus(schoolId ?? null, session?.user.id ?? null);
 
   if (isLoading) {
     return (
@@ -13,6 +16,18 @@ export default function TabsLayout(): React.ReactElement {
         <ActivityIndicator size="large" accessibilityLabel="Loading" />
       </View>
     );
+  }
+
+  if (waiverStatus.status === "loading") {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" accessibilityLabel="Checking waiver status" />
+      </View>
+    );
+  }
+
+  if (waiverStatus.status === "needs-signature") {
+    return <Redirect href="/(auth)/waiver" />;
   }
 
   if (!session) {
@@ -71,7 +86,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#f8fafc",
   },
 });
 

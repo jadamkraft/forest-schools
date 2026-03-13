@@ -1,6 +1,7 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/src/types/supabase";
 
-let client: SupabaseClient | null = null;
+let client: SupabaseClient<Database> | null = null;
 
 /**
  * Resolves the Supabase URL, optionally replacing the host with a local IP.
@@ -24,7 +25,7 @@ function resolveSupabaseUrl(): string {
 /**
  * Singleton Supabase client. Use this everywhere so RLS and auth state are consistent.
  */
-export function getSupabase(): SupabaseClient {
+export function getSupabase(): SupabaseClient<Database> {
   if (!client) {
     const url = resolveSupabaseUrl();
     const key = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -33,7 +34,7 @@ export function getSupabase(): SupabaseClient {
         "Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY. Copy .env.example to .env."
       );
     }
-    client = createClient(url, key);
+    client = createClient<Database>(url, key);
   }
   return client;
 }

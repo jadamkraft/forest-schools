@@ -1,7 +1,7 @@
--- TAFS seed: one school, five students, and one profile for the first auth user (if any).
+-- TAFS seed: one school, five students, master waiver, and core test users.
 -- Tulsa school UUID: a0000001-0000-4000-8000-000000000001
--- For the test user to see students: set app_metadata.school_id to this UUID in
---   Supabase Dashboard (Authentication -> Users -> [user] -> App Metadata) and refresh the session.
+-- For a test user to see students: app_metadata.school_id must be this UUID in
+--   Supabase Dashboard (Authentication -> Users -> [user] -> App Metadata) or in raw_app_meta_data here, then refresh the session.
 
 -- 1. School (fixed UUID for docs and verify-rls)
 INSERT INTO public.schools (id, name)
@@ -35,7 +35,143 @@ FROM (
 ) sub
 ON CONFLICT (id) DO NOTHING;
 
--- 4. Example classes for Tulsa over the next two weeks (for calendar demos)
+-- 4. Master waiver for Tulsa (current active waiver)
+INSERT INTO public.waivers (
+  school_id,
+  title,
+  body_md,
+  version,
+  is_active,
+  effective_from,
+  created_by
+)
+VALUES (
+  'a0000001-0000-4000-8000-000000000001'::uuid,
+  'TAFS-2026-V1: Liability, Risk, and Forest Safety',
+  $markdown$
+# Tulsa Area Forest School – Liability, Risk, and Forest Safety
+
+**Please read this waiver carefully before your child participates in any forest school activity.**
+
+## 1. Assumption of Risk
+
+By signing this waiver, I acknowledge and agree that:
+
+- Forest programs take place in **natural outdoor environments** with uneven terrain, mud, roots, rocks, insects, and changing weather.
+- My child may engage in activities such as **climbing**, **running**, **using simple tools** (e.g., sticks, ropes), and **exploring near water** under supervision.
+- These activities inherently involve **risks of minor and serious injury**, including but not limited to cuts, scrapes, sprains, insect bites, sunburn, and slips or falls.
+
+I **voluntarily accept and assume all such risks** on behalf of my child.
+
+## 2. Safety Practices
+
+I understand that Tulsa Area Forest School will:
+
+- Maintain **reasonable adult supervision** at all times during program hours.
+- Provide **age-appropriate safety guidance** and clear boundaries for play.
+- Adjust or pause activities in response to **severe weather** or unsafe conditions.
+- Maintain **basic first-aid supplies** and communicate any notable incidents.
+
+I acknowledge that no program can remove **all risk** from outdoor play, and that **shared responsibility** between staff and guardians is essential.
+
+## 3. Medical and Emergency Care
+
+By signing, I:
+
+- Authorize staff to provide **basic first aid** to my child if needed.
+- Authorize staff to contact **emergency services (911)** in situations where they reasonably believe it is necessary.
+- Agree to be **reachable via the contact information** I have provided to the school.
+
+## 4. Release of Liability
+
+To the fullest extent permitted by law, I hereby:
+
+- **Release and discharge** Tulsa Area Forest School, its staff, volunteers, and partners from any claims or liability arising from ordinary negligence related to my child’s participation.
+- Agree not to pursue claims for **injuries or property damage** that may arise from ordinary risks inherent in outdoor, nature-based programs.
+
+This release does *not* apply to gross negligence or intentional harm, where prohibited by law.
+
+## 5. Acknowledgment and Consent
+
+By signing below, I confirm that:
+
+- I have **read and understood** this waiver.
+- I have had the opportunity to ask questions about the program and its risks.
+- I am the **legal guardian** of the child(ren) I am registering and have the authority to consent on their behalf.
+
+**By typing my full name, I acknowledge that this electronic signature has the same legal effect as a handwritten signature.**
+$markdown$,
+  1,
+  true,
+  now(),
+  null
+)
+ON CONFLICT (school_id, version) DO UPDATE
+SET
+  body_md = EXCLUDED.body_md,
+  is_active = EXCLUDED.is_active,
+  updated_at = now();
+
+-- 5. Core test users in auth.users and their profiles (admin, staff, guardian)
+WITH school AS (
+  SELECT id
+  FROM public.schools
+  WHERE id = 'a0000001-0000-4000-8000-000000000001'::uuid
+  LIMIT 1
+),
+accounts AS (
+  SELECT *
+  FROM (VALUES
+    ('admin@test.com',   'Admin User',          'admin'),
+    ('staff@test.com',   'Staff User',          'staff'),
+    ('parent@test.com',  'Forest Guardian',     'guardian')
+  ) AS a(email, full_name, role)
+),
+ins_users AS (
+  INSERT INTO auth.users (
+    email,
+    encrypted_password,
+    email_confirmed_at,
+    raw_app_meta_data,
+    raw_user_meta_data
+  )
+  SELECT
+    a.email,
+    -- bcrypt hash for the password "password"
+    '$2a$10$u1G3VddOZXS6jttuPAHy9.xUt.Cc.xvx6bMpiKFFitvolG/Gp2gbC'::text,
+    now(),
+    jsonb_build_object(
+      'provider', 'email',
+      'providers', jsonb_build_array('email'),
+      'school_id', (SELECT id::text FROM school)
+    ),
+    jsonb_build_object(
+      'full_name', a.full_name
+    )
+  FROM accounts a
+  ON CONFLICT (email) DO UPDATE
+  SET
+    raw_app_meta_data = EXCLUDED.raw_app_meta_data,
+    raw_user_meta_data = EXCLUDED.raw_user_meta_data
+  RETURNING id, email
+)
+INSERT INTO public.profiles (id, school_id, email, full_name, role)
+SELECT
+  u.id,
+  (SELECT id FROM school),
+  u.email,
+  a.full_name,
+  a.role
+FROM ins_users u
+JOIN accounts a ON a.email = u.email
+ON CONFLICT (id) DO UPDATE
+SET
+  email = EXCLUDED.email,
+  full_name = EXCLUDED.full_name,
+  role = EXCLUDED.role,
+  school_id = EXCLUDED.school_id;
+
+-- 6. Example classes for Tulsa over the next two weeks (for calendar demos)
 with tulsa as (
   select id
   from public.schools
