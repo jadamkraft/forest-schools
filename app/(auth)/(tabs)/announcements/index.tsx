@@ -1,9 +1,9 @@
 import { ActivityIndicator, Text, View } from "react-native";
 import { useCallback } from "react";
 import { useAuthContext } from "@/lib/AuthProvider";
-import { useAnnouncements } from "./hooks/useAnnouncements";
-import { useMarkAnnouncementRead } from "./hooks/useMarkAnnouncementRead";
-import { AnnouncementList } from "./AnnouncementList";
+import { useAnnouncements } from "@/features/announcements/hooks/useAnnouncements";
+import { useMarkAnnouncementRead } from "@/features/announcements/hooks/useMarkAnnouncementRead";
+import { AnnouncementList } from "@/features/announcements/components/AnnouncementList";
 
 export default function AnnouncementsScreen(): React.ReactElement {
   const { schoolId } = useAuthContext();

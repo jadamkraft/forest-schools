@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Database } from "@/src/types/supabase";
 import { getSupabase } from "@/lib/supabase";
-import type { Announcement } from "./useAnnouncements";
-import { announcementsQueryKey } from "./useAnnouncements";
+import type { Announcement } from "@/features/announcements/hooks/useAnnouncements";
+import { announcementsQueryKey } from "@/features/announcements/hooks/useAnnouncements";
 
-type AnnouncementReadInsert = Database["public"]["Tables"]["announcement_reads"]["Insert"];
+type AnnouncementReadInsert =
+  Database["public"]["Tables"]["announcement_reads"]["Insert"];
 
 interface UseMarkAnnouncementReadArgs {
   schoolId: string | null;

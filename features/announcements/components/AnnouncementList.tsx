@@ -1,6 +1,6 @@
 import { FlatList, Text, View } from "react-native";
-import type { Announcement } from "./hooks/useAnnouncements";
-import { AnnouncementCard } from "./AnnouncementCard";
+import type { Announcement } from "@/features/announcements/hooks/useAnnouncements";
+import { AnnouncementCard } from "@/features/announcements/components/AnnouncementCard";
 
 interface AnnouncementListProps {
   announcements: Announcement[];

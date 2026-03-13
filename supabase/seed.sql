@@ -121,50 +121,64 @@ WITH school AS (
 accounts AS (
   SELECT *
   FROM (VALUES
-    ('00000000-0000-0000-0000-000000000001'::uuid, 'admin@test.com',   'Admin User',          'admin'),
-    ('00000000-0000-0000-0000-000000000002'::uuid, 'staff@test.com',   'Staff User',          'staff'),
-    ('00000000-0000-0000-0000-000000000003'::uuid, 'parent@test.com',  'Forest Guardian',     'guardian')
+    ('00000000-0000-0000-0000-000000000001'::uuid, 'admin@test.com',   'Admin User',      'admin'),
+    ('00000000-0000-0000-0000-000000000002'::uuid, 'staff@test.com',   'Staff User',      'staff'),
+    ('00000000-0000-0000-0000-000000000003'::uuid, 'parent@test.com',  'Forest Guardian', 'guardian')
   ) AS a(id, email, full_name, role)
-),
-ins_users AS (
-  INSERT INTO auth.users (
-    id,
-    email,
-    encrypted_password,
-    email_confirmed_at,
-    raw_app_meta_data,
-    raw_user_meta_data
+)
+-- 5. Core auth users: fixed UUIDs with password "password123"
+INSERT INTO auth.users (
+  id,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  raw_app_meta_data,
+  raw_user_meta_data
+)
+SELECT
+  a.id,
+  a.email,
+  -- bcrypt hash for the password "password123"
+  '$2a$10$Q2fP33N1Ic99fXjqS0HP7OuS96NLuT2FDjFb1pTqA2x4cOTV12k8u'::text,
+  now(),
+  jsonb_build_object(
+    'provider', 'email',
+    'providers', jsonb_build_array('email'),
+    'school_id', (SELECT id::text FROM school)
+  ),
+  jsonb_build_object(
+    'full_name', a.full_name
   )
-  SELECT
-    a.id,
-    a.email,
-    -- bcrypt hash for the password "password123"
-    '$2a$10$Q2fP33N1Ic99fXjqS0HP7OuS96NLuT2FDjFb1pTqA2x4cOTV12k8u'::text,
-    now(),
-    jsonb_build_object(
-      'provider', 'email',
-      'providers', jsonb_build_array('email'),
-      'school_id', (SELECT id::text FROM school)
-    ),
-    jsonb_build_object(
-      'full_name', a.full_name
-    )
-  FROM accounts a
-  ON CONFLICT (id) DO UPDATE
-  SET
-    raw_app_meta_data = EXCLUDED.raw_app_meta_data,
-    raw_user_meta_data = EXCLUDED.raw_user_meta_data
-  RETURNING id, email
+FROM accounts a
+ON CONFLICT (id) DO UPDATE
+SET
+  raw_app_meta_data = EXCLUDED.raw_app_meta_data,
+  raw_user_meta_data = EXCLUDED.raw_user_meta_data;
+
+-- 6. Profiles for core auth users (depends on auth.users)
+WITH school AS (
+  SELECT id
+  FROM public.schools
+  WHERE id = 'a0000001-0000-4000-8000-000000000001'::uuid
+  LIMIT 1
+),
+accounts AS (
+  SELECT *
+  FROM (VALUES
+    ('00000000-0000-0000-0000-000000000001'::uuid, 'admin@test.com',   'Admin User',      'admin'),
+    ('00000000-0000-0000-0000-000000000002'::uuid, 'staff@test.com',   'Staff User',      'staff'),
+    ('00000000-0000-0000-0000-000000000003'::uuid, 'parent@test.com',  'Forest Guardian', 'guardian')
+  ) AS a(id, email, full_name, role)
 )
 INSERT INTO public.profiles (id, school_id, email, full_name, role)
 SELECT
   u.id,
   (SELECT id FROM school),
-  u.email,
+  a.email,
   a.full_name,
   a.role
-FROM ins_users u
-JOIN accounts a ON a.email = u.email
+FROM accounts a
+JOIN auth.users u ON u.id = a.id
 ON CONFLICT (id) DO UPDATE
 SET
   email = EXCLUDED.email,

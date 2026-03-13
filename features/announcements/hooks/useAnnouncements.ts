@@ -10,7 +10,9 @@ export interface Announcement extends AnnouncementRow {
   readAt: string | null;
 }
 
-export function announcementsQueryKey(schoolId: string | null): [string, string | null] {
+export function announcementsQueryKey(
+  schoolId: string | null,
+): [string, string | null] {
   return ["announcements", schoolId];
 }
 
@@ -66,7 +68,8 @@ async function fetchAnnouncements(schoolId: string): Promise<Announcement[]> {
 
   return rows.map((row) => {
     const match =
-      row.announcement_reads?.find((read) => read.profile_id === profileId) ?? null;
+      row.announcement_reads?.find((read) => read.profile_id === profileId) ??
+      null;
 
     return {
       ...row,

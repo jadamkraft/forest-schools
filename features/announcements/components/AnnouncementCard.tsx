@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { Text, TouchableOpacity, View } from "react-native";
-import type { Announcement } from "./hooks/useAnnouncements";
+import type { Announcement } from "@/features/announcements/hooks/useAnnouncements";
 
 interface AnnouncementCardProps {
   announcement: Announcement;
