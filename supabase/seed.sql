@@ -112,7 +112,6 @@ SET
   is_active = EXCLUDED.is_active,
   updated_at = now();
 
--- 5. Core test users in auth.users and their profiles (admin, staff, guardian)
 WITH school AS (
   SELECT id
   FROM public.schools
@@ -122,13 +121,14 @@ WITH school AS (
 accounts AS (
   SELECT *
   FROM (VALUES
-    ('admin@test.com',   'Admin User',          'admin'),
-    ('staff@test.com',   'Staff User',          'staff'),
-    ('parent@test.com',  'Forest Guardian',     'guardian')
-  ) AS a(email, full_name, role)
+    ('00000000-0000-0000-0000-000000000001'::uuid, 'admin@test.com',   'Admin User',          'admin'),
+    ('00000000-0000-0000-0000-000000000002'::uuid, 'staff@test.com',   'Staff User',          'staff'),
+    ('00000000-0000-0000-0000-000000000003'::uuid, 'parent@test.com',  'Forest Guardian',     'guardian')
+  ) AS a(id, email, full_name, role)
 ),
 ins_users AS (
   INSERT INTO auth.users (
+    id,
     email,
     encrypted_password,
     email_confirmed_at,
@@ -136,9 +136,10 @@ ins_users AS (
     raw_user_meta_data
   )
   SELECT
+    a.id,
     a.email,
-    -- bcrypt hash for the password "password"
-    '$2a$10$u1G3VddOZXS6jttuPAHy9.xUt.Cc.xvx6bMpiKFFitvolG/Gp2gbC'::text,
+    -- bcrypt hash for the password "password123"
+    '$2a$10$Q2fP33N1Ic99fXjqS0HP7OuS96NLuT2FDjFb1pTqA2x4cOTV12k8u'::text,
     now(),
     jsonb_build_object(
       'provider', 'email',
@@ -149,7 +150,7 @@ ins_users AS (
       'full_name', a.full_name
     )
   FROM accounts a
-  ON CONFLICT (email) DO UPDATE
+  ON CONFLICT (id) DO UPDATE
   SET
     raw_app_meta_data = EXCLUDED.raw_app_meta_data,
     raw_user_meta_data = EXCLUDED.raw_user_meta_data
