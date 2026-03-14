@@ -13,7 +13,7 @@ import {
   View,
 } from "react-native";
 
-const DEV_PREFILL_EMAIL = "tafs-admin@test.local";
+const DEV_PREFILL_EMAIL = "admin@test.com";
 
 export default function LoginScreen(): React.ReactElement {
   const { session, isLoading, signIn } = useAuthContext();

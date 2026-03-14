@@ -138,7 +138,11 @@ INSERT INTO auth.users (
   raw_app_meta_data,
   raw_user_meta_data,
   created_at,
-  updated_at
+  updated_at,
+  confirmation_token,
+  recovery_token,
+  email_change,
+  email_change_token_new
 )
 SELECT
   a.id,
@@ -147,7 +151,7 @@ SELECT
   'authenticated',
   a.email,
   -- bcrypt hash for the password "password123"
-  '$2a$10$Q2fP33N1Ic99fXjqS0HP7OuS96NLuT2FDjFb1pTqA2x4cOTV12k8u'::text,
+  '$2a$10$u1G3VddOZXS6jttuPAHy9.xUt.Cc.xvx6bMpiKFFitvolG/Gp2gbC'::text,
   now(),
   jsonb_build_object(
     'provider', 'email',
@@ -158,12 +162,20 @@ SELECT
     'full_name', a.full_name
   ),
   now(),
-  now()
+  now(),
+  '',
+  '',
+  '',
+  ''
 FROM accounts a
 ON CONFLICT (id) DO UPDATE
 SET
   raw_app_meta_data = EXCLUDED.raw_app_meta_data,
-  raw_user_meta_data = EXCLUDED.raw_user_meta_data;
+  raw_user_meta_data = EXCLUDED.raw_user_meta_data,
+  confirmation_token = EXCLUDED.confirmation_token,
+  recovery_token = EXCLUDED.recovery_token,
+  email_change = EXCLUDED.email_change,
+  email_change_token_new = EXCLUDED.email_change_token_new;
 
 -- 5b. Email identities for core auth users (required for Auth UI + login)
 WITH accounts AS (

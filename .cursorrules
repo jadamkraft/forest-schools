@@ -66,3 +66,7 @@ You are an expert Senior Mobile Architect and AI Solutions Architect. You are as
 - **Icons:** Use `@expo/vector-icons` (Lucide preferred).
 
 - add .cursorrules and all other cursor specific plans to .gitignore - cursor specific information should not be included in the repo
+
+## 9. Supabase / Database
+
+- **Auth Seeding Guardrail:** When generating SQL to seed `auth.users` manually, always initialize `confirmation_token`, `recovery_token`, `email_change_token_new`, and `email_change` as empty strings (`''`) instead of `NULL` to prevent GoTrue scan errors. Always verify that bcrypt hashes match their documented plaintext passwords.
