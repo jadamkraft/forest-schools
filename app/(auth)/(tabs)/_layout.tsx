@@ -6,7 +6,7 @@ import { useAuthContext } from "@/lib/AuthProvider";
 import { useWaiverStatus } from "@/features/waivers/useWaiverStatus";
 
 export default function TabsLayout(): React.ReactElement {
-  const { session, schoolId, isLoading } = useAuthContext();
+  const { session, schoolId, role, isLoading } = useAuthContext();
 
   const waiverStatus = useWaiverStatus(schoolId ?? null, session?.user.id ?? null);
 
@@ -26,16 +26,16 @@ export default function TabsLayout(): React.ReactElement {
     );
   }
 
-  if (waiverStatus.status === "needs-signature") {
-    return <Redirect href="/(auth)/waiver" />;
-  }
-
   if (!session) {
     return (
       <>
         <Redirect href="/login" />
       </>
     );
+  }
+
+  if (waiverStatus.status === "needs-signature" && role !== "admin" && role !== "staff") {
+    return <Redirect href="/(auth)/waiver" />;
   }
 
   return (

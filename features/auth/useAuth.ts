@@ -7,6 +7,7 @@ import { getSchoolIdFromSession } from "./types";
 export function useAuth(): AuthState {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [role, setRole] = useState<string | null>(null);
 
   const user = session?.user ?? null;
   const schoolId = getSchoolIdFromSession(session);
@@ -41,6 +42,42 @@ export function useAuth(): AuthState {
     };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadProfileRole() {
+      if (!user) {
+        if (mounted) {
+          setRole(null);
+        }
+        return;
+      }
+
+      const supabase = getSupabase();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle<{ role: string | null }>();
+
+      if (!mounted) return;
+
+      if (error) {
+        console.error("Failed to load profile role", error);
+        setRole(null);
+        return;
+      }
+
+      setRole(data?.role ?? null);
+    }
+
+    loadProfileRole();
+
+    return () => {
+      mounted = false;
+    };
+  }, [user?.id]);
+
   const signIn = useCallback(async (email: string, password: string): Promise<void> => {
     const { error } = await getSupabase().auth.signInWithPassword({
       email: email.trim(),
@@ -57,6 +94,7 @@ export function useAuth(): AuthState {
     session,
     user,
     schoolId,
+    role,
     isLoading,
     signIn,
     signOut,

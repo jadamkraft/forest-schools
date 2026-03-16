@@ -14,6 +14,7 @@ export interface AuthState {
   session: Session | null;
   user: Session["user"] | null;
   schoolId: string | null;
+  role: string | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;

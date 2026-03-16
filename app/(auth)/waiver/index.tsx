@@ -11,6 +11,7 @@ export default function WaiverScreen(): React.ReactElement {
   const router = useRouter();
   const [typedName, setTypedName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const waiverStatus = useWaiverStatus(schoolId ?? null, session?.user.id ?? null);
   const waiver = waiverStatus.status === "needs-signature" ? waiverStatus.waiver : null;
@@ -18,10 +19,23 @@ export default function WaiverScreen(): React.ReactElement {
   const canSubmit = !!waiver && typedName.trim().length > 0 && !isSubmitting;
 
   async function handleAcceptAndSign() {
-    if (!waiver || !session || !schoolId || !canSubmit) return;
+    if (!waiver) {
+      setErrorMessage("There is no active waiver to sign right now.");
+      return;
+    }
+
+    if (!session || !schoolId) {
+      setErrorMessage("You must be signed in with a valid school to sign this waiver.");
+      return;
+    }
+
+    if (!canSubmit) {
+      return;
+    }
 
     setIsSubmitting(true);
     try {
+      setErrorMessage(null);
       const supabase = getSupabase();
 
       // For Phase 1, sign once per profile/school for the active waiver.
@@ -34,6 +48,9 @@ export default function WaiverScreen(): React.ReactElement {
 
       if (studentsError || !students || students.length === 0) {
         console.error("No students found to attach waiver signature", studentsError);
+        setErrorMessage(
+          "We couldn’t find any students for this school. Please add a student profile before signing.",
+        );
         setIsSubmitting(false);
         return;
       }
@@ -51,6 +68,9 @@ export default function WaiverScreen(): React.ReactElement {
 
       if (error) {
         console.error("Failed to record waiver signature", error);
+        setErrorMessage(
+          "We couldn’t record your signature. Please try again, and contact support if this continues.",
+        );
         setIsSubmitting(false);
         return;
       }
@@ -97,6 +117,7 @@ export default function WaiverScreen(): React.ReactElement {
         >
           <Text style={styles.acceptButtonText}>I Accept &amp; Sign</Text>
         </TouchableOpacity>
+        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
       </View>
     </View>
   );
@@ -169,6 +190,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#0f172a",
+  },
+  errorText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: "#b91c1c",
   },
 });
 
