@@ -170,6 +170,9 @@ SELECT
 FROM accounts a
 ON CONFLICT (id) DO UPDATE
 SET
+  aud = EXCLUDED.aud,
+  role = EXCLUDED.role,
+  encrypted_password = EXCLUDED.encrypted_password,
   raw_app_meta_data = EXCLUDED.raw_app_meta_data,
   raw_user_meta_data = EXCLUDED.raw_user_meta_data,
   confirmation_token = EXCLUDED.confirmation_token,
@@ -178,6 +181,7 @@ SET
   email_change_token_new = EXCLUDED.email_change_token_new;
 
 -- 5b. Email identities for core auth users (required for Auth UI + login)
+-- For email provider, provider_id must be the user's UUID (not email); identity id defaults to gen_random_uuid().
 WITH accounts AS (
   SELECT *
   FROM (VALUES
@@ -187,7 +191,6 @@ WITH accounts AS (
   ) AS a(id, email)
 )
 INSERT INTO auth.identities (
-  id,
   user_id,
   identity_data,
   provider,
@@ -198,10 +201,11 @@ INSERT INTO auth.identities (
 )
 SELECT
   a.id,
-  a.id,
   jsonb_build_object(
     'sub', a.id::text,
-    'email', a.email
+    'email', a.email,
+    'email_verified', true,
+    'phone_verified', false
   ),
   'email',
   a.id::text,
@@ -209,11 +213,11 @@ SELECT
   now(),
   now()
 FROM accounts a
-ON CONFLICT (id) DO UPDATE
+ON CONFLICT ON CONSTRAINT identities_provider_id_provider_unique DO UPDATE
 SET
+  user_id = EXCLUDED.user_id,
   identity_data = EXCLUDED.identity_data,
-  provider = EXCLUDED.provider,
-  provider_id = EXCLUDED.provider_id,
+  last_sign_in_at = EXCLUDED.last_sign_in_at,
   updated_at = EXCLUDED.updated_at;
 
 -- 6. Profiles for core auth users (depends on auth.users)
