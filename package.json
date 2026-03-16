@@ -10,6 +10,7 @@
     "start:loader": "cross-env NODE_OPTIONS=--experimental-vm-modules node --loader tsx ./node_modules/expo/bin/cli.js start",
     "verify-rls": "tsx lib/verify-rls.ts",
     "debug-auth": "tsx lib/debug-auth.ts",
+    "seed:auth": "tsx scripts/seed-auth.ts",
     "typegen": "supabase gen types typescript --local > src/types/supabase.ts"
   },
   "dependencies": {
