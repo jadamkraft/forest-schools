@@ -35,6 +35,7 @@ export function ParentHub(): React.ReactElement {
           className="mb-4 min-h-[60px] flex-row items-center justify-between rounded-xl border-2 border-slate-900 bg-white px-4"
           accessibilityRole="button"
           accessibilityLabel="View your students"
+          onPress={() => router.push("/(auth)/(tabs)/family/students")}
         >
           <View className="flex-1 pr-2">
             <Text className="text-lg font-semibold text-slate-900">Your students</Text>
@@ -48,6 +49,7 @@ export function ParentHub(): React.ReactElement {
           className="mb-4 min-h-[60px] flex-row items-center justify-between rounded-xl border-2 border-slate-900 bg-white px-4"
           accessibilityRole="button"
           accessibilityLabel="View calendar"
+          onPress={() => router.push("/(auth)/(tabs)/calendar")}
         >
           <View className="flex-1 pr-2">
             <Text className="text-lg font-semibold text-slate-900">Calendar</Text>

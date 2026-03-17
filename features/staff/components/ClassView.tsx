@@ -1,11 +1,13 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useAuthContext } from "@/lib/AuthProvider";
-import { useLogAttendanceMutation, useStudents } from "@/features/attendance";
+import { useLogAttendanceMutation } from "@/features/attendance";
 import type { Student } from "@/features/attendance";
 import { StudentEmergencyCard } from "@/features/attendance/StudentEmergencyCard";
+import { useLocalSearchParams } from "expo-router";
+import { useClassRoster } from "@/features/staff/hooks/useClassRoster";
 
 function StudentRow({
   student,
@@ -44,7 +46,14 @@ function StudentRow({
 
 export function ClassView(): React.ReactElement {
   const { signOut, schoolId } = useAuthContext();
-  const { data: students, isLoading, isError, error, refetch } = useStudents(schoolId);
+  const { classId } = useLocalSearchParams<{ classId?: string }>();
+  const {
+    data: roster,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useClassRoster({ schoolId: schoolId ?? null, classId: (classId as string | undefined) ?? null });
   const [checkedInIds, setCheckedInIds] = useState<Set<string>>(() => new Set());
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const logAttendanceMutation = useLogAttendanceMutation(schoolId);
@@ -72,8 +81,6 @@ export function ClassView(): React.ReactElement {
     },
     [logAttendanceMutation],
   );
-
-  const roster = useMemo(() => students ?? [], [students]);
   const isEmergencyCardOpen = selectedStudent != null;
 
   const handleOpenEmergencyCard = useCallback((student: Student): void => {
@@ -103,6 +110,8 @@ export function ClassView(): React.ReactElement {
 
         {schoolId == null ? (
           <Text className="text-slate-900">No school assigned.</Text>
+        ) : classId == null ? (
+          <Text className="text-slate-900">Select a class from the calendar to see its roster.</Text>
         ) : isLoading ? (
           <View className="items-center py-8">
             <ActivityIndicator size="large" color="#0f172a" />
@@ -122,11 +131,11 @@ export function ClassView(): React.ReactElement {
               <Text className="text-base font-semibold text-slate-900">Retry</Text>
             </TouchableOpacity>
           </View>
-        ) : roster.length === 0 ? (
-          <Text className="text-slate-900">No students in this school.</Text>
+        ) : (roster ?? []).length === 0 ? (
+          <Text className="text-slate-900">No RSVPs for this class yet.</Text>
         ) : (
           <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }}>
-            {roster.map((student) => (
+            {(roster ?? []).map((student) => (
               <TouchableOpacity
                 key={student.id}
                 activeOpacity={0.8}

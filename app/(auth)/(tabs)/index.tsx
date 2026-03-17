@@ -1,4 +1,5 @@
 import { ActivityIndicator, Text, View } from "react-native";
+import { Redirect } from "expo-router";
 import { useAuthContext } from "@/lib/AuthProvider";
 import type { AppRole } from "@/features/auth/types";
 import { AdminDashboard } from "@/features/admin/components/AdminDashboard";
@@ -11,7 +12,8 @@ function RoleHome({ role }: { role: AppRole | null }): React.ReactElement {
   }
 
   if (role === "staff") {
-    return <ClassView />;
+    // Staff should land on the Classes list (calendar tab)
+    return <Redirect href="/(auth)/(tabs)/calendar" />;
   }
 
   return <ParentHub />;

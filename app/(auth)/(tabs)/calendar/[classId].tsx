@@ -6,12 +6,13 @@ import { useAuthContext } from "@/lib/AuthProvider";
 import { useClassesForRange } from "@/features/calendar";
 import { RsvpButtons } from "@/features/calendar/components/RsvpButtons";
 import type { Student } from "@/features/attendance";
-import { useStudents } from "@/features/attendance";
+import { useGuardianStudents } from "@/features/students";
 
 export default function ClassDetailScreen(): React.ReactElement {
   const { classId } = useLocalSearchParams<{ classId: string }>();
-  const { schoolId } = useAuthContext();
-  const { data: students } = useStudents(schoolId);
+  const { schoolId, user } = useAuthContext();
+  const profileId = user?.id ?? null;
+  const { data: students } = useGuardianStudents(schoolId ?? null, profileId);
 
   const { start, end } = useMemo(() => {
     const now = new Date();

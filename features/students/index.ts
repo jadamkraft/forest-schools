@@ -1,2 +1,2 @@
-// Students feature: logic and UI co-located. Re-export public API here.
-export {};
+// Students feature: guardian-facing student management.
+export { useGuardianStudents, useCreateStudent } from "./api";
