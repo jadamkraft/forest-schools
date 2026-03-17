@@ -35,6 +35,7 @@ export function AdminDashboard(): React.ReactElement {
           className="mb-4 min-h-[60px] flex-row items-center justify-between rounded-xl border-2 border-slate-900 bg-white px-4"
           accessibilityRole="button"
           accessibilityLabel="View roster overview"
+          onPress={() => router.push("/(auth)/(tabs)/admin/roster-overview")}
         >
           <View className="flex-1 pr-2">
             <Text className="text-lg font-semibold text-slate-900">Roster overview</Text>
@@ -48,6 +49,7 @@ export function AdminDashboard(): React.ReactElement {
           className="mb-4 min-h-[60px] flex-row items-center justify-between rounded-xl border-2 border-slate-900 bg-white px-4"
           accessibilityRole="button"
           accessibilityLabel="Review attendance alerts"
+          onPress={() => router.push("/(auth)/(tabs)/admin/attendance-alerts")}
         >
           <View className="flex-1 pr-2">
             <Text className="text-lg font-semibold text-slate-900">Attendance alerts</Text>
