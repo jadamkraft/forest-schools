@@ -34,7 +34,9 @@ export default function TabsLayout(): React.ReactElement {
     );
   }
 
-  if (waiverStatus.status === "needs-signature" && role !== "admin" && role !== "staff") {
+  const isGuardian = role === "guardian";
+
+  if (waiverStatus.status === "needs-signature" && isGuardian) {
     return <Redirect href="/(auth)/waiver" />;
   }
 

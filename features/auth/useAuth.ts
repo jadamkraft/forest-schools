@@ -1,13 +1,13 @@
 import type { Session } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "../../lib/supabase";
-import type { AuthState } from "./types";
-import { getSchoolIdFromSession } from "./types";
+import type { AppRole, AuthState } from "./types";
+import { getSchoolIdFromSession, normalizeRole } from "./types";
 
 export function useAuth(): AuthState {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [role, setRole] = useState<string | null>(null);
+  const [role, setRole] = useState<AppRole | null>(null);
 
   const user = session?.user ?? null;
   const schoolId = getSchoolIdFromSession(session);
@@ -68,7 +68,8 @@ export function useAuth(): AuthState {
         return;
       }
 
-      setRole(data?.role ?? null);
+      const normalized = normalizeRole(data?.role ?? null);
+      setRole(normalized);
     }
 
     loadProfileRole();
