@@ -1,0 +1,54 @@
+-- NOTE: This migration file is intentionally comments-only.
+-- It documents the planned change to announcements RLS so that
+-- only admins can insert/update announcements.
+--
+-- Current policies (from 20260312120000_create_announcements_and_reads.sql)
+-- allow role = 'staff' to insert/update/delete announcements.
+--
+-- When ready to enforce admin-only creation and editing,
+-- create a real migration that runs statements like:
+--
+--   drop policy if exists announcements_insert_by_staff on public.announcements;
+--   drop policy if exists announcements_update_by_staff on public.announcements;
+--
+--   create policy announcements_insert_by_admin
+--     on public.announcements
+--     as permissive
+--     for insert
+--     to public
+--     with check (
+--       exists (
+--         select 1
+--         from public.profiles p
+--         where p.id = auth.uid()
+--           and p.school_id = announcements.school_id
+--           and p.role = 'admin'
+--       )
+--     );
+--
+--   create policy announcements_update_by_admin
+--     on public.announcements
+--     as permissive
+--     for update
+--     to public
+--     using (
+--       exists (
+--         select 1
+--         from public.profiles p
+--         where p.id = auth.uid()
+--           and p.school_id = announcements.school_id
+--           and p.role = 'admin'
+--       )
+--     )
+--     with check (
+--       exists (
+--         select 1
+--         from public.profiles p
+--         where p.id = auth.uid()
+--           and p.school_id = announcements.school_id
+--           and p.role = 'admin'
+--       )
+--     );
+--
+-- This file is safe to run because it executes no SQL statements.
+

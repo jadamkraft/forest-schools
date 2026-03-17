@@ -3,12 +3,14 @@ import type { Database } from "@/src/types/supabase";
 import { getSupabase } from "@/lib/supabase";
 import type { Announcement } from "@/features/announcements/hooks/useAnnouncements";
 import { announcementsQueryKey } from "@/features/announcements/hooks/useAnnouncements";
+import type { AppRole } from "@/features/auth/types";
 
 type AnnouncementReadInsert =
   Database["public"]["Tables"]["announcement_reads"]["Insert"];
 
 interface UseMarkAnnouncementReadArgs {
   schoolId: string | null;
+  role: AppRole | null;
 }
 
 export function useMarkAnnouncementRead(
@@ -21,7 +23,7 @@ export function useMarkAnnouncementRead(
     { previous?: Announcement[] }
   >
 > {
-  const { schoolId } = args;
+  const { schoolId, role } = args;
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -68,7 +70,7 @@ export function useMarkAnnouncementRead(
         return {};
       }
 
-      const key = announcementsQueryKey(schoolId);
+      const key = announcementsQueryKey(schoolId, role ?? null);
 
       await queryClient.cancelQueries({ queryKey: key });
 
@@ -95,7 +97,7 @@ export function useMarkAnnouncementRead(
         return;
       }
 
-      const key = announcementsQueryKey(schoolId);
+      const key = announcementsQueryKey(schoolId, role ?? null);
       queryClient.setQueryData(key, context.previous);
     },
     onSettled: () => {
@@ -103,7 +105,7 @@ export function useMarkAnnouncementRead(
         return;
       }
 
-      const key = announcementsQueryKey(schoolId);
+      const key = announcementsQueryKey(schoolId, role ?? null);
       void queryClient.invalidateQueries({ queryKey: key });
     },
   });

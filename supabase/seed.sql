@@ -176,3 +176,59 @@ cross join (
     )
 ) as cls(title, description, location, starts_at, ends_at);
 
+-- 7. Sample announcements for Tulsa for local testing
+with tulsa as (
+  select id
+  from public.schools
+  where id = 'a0000001-0000-4000-8000-000000000001'::uuid
+  limit 1
+), creator as (
+  select id
+  from public.profiles
+  where school_id = 'a0000001-0000-4000-8000-000000000001'::uuid
+  order by created_at
+  limit 1
+)
+insert into public.announcements (
+  school_id,
+  title,
+  body,
+  priority,
+  audience,
+  published_at,
+  expires_at,
+  created_by
+)
+select
+  tulsa.id,
+  a.title,
+  a.body,
+  a.priority,
+  a.audience,
+  now(),
+  null::timestamptz,
+  creator.id
+from tulsa
+cross join creator
+cross join (
+  values
+    (
+      'Welcome to Forest Days',
+      'We''re excited to see your students in the woods this week.',
+      'normal',
+      'all'
+    ),
+    (
+      'Pack extra layers tomorrow',
+      'Temperatures will drop in the afternoon, please send an extra warm layer.',
+      'important',
+      'guardians'
+    ),
+    (
+      'Trailhead briefing at 8:15',
+      'Staff meet at the main trailhead for a quick safety and logistics briefing.',
+      'important',
+      'staff'
+    )
+) as a(title, body, priority, audience)
+on conflict do nothing;
