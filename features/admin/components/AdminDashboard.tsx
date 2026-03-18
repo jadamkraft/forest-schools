@@ -22,11 +22,11 @@ export function AdminDashboard(): React.ReactElement {
         </View>
         <TouchableOpacity
           onPress={handleSignOut}
-          className="min-h-[44px] min-w-[44px] items-center justify-center rounded-full bg-white"
+          className="min-h-[60px] min-w-[60px] items-center justify-center rounded-full bg-white"
           accessibilityLabel="Sign out"
           accessibilityRole="button"
         >
-          <Ionicons name="log-out-outline" size={24} color="#0f172a" />
+          <Ionicons name="log-out-outline" size={28} color="#0f172a" />
         </TouchableOpacity>
       </View>
 

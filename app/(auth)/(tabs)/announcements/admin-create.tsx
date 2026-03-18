@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { useAuthContext } from "@/lib/AuthProvider";
 import { useCreateAnnouncement } from "@/features/announcements/hooks/useCreateAnnouncement";
 
@@ -8,7 +8,7 @@ type Audience = "all" | "staff" | "guardians";
 type Priority = "normal" | "important" | "emergency";
 
 export default function AdminCreateAnnouncementScreen(): React.ReactElement {
-  const { schoolId, role } = useAuthContext();
+  const { schoolId, role, isLoading } = useAuthContext();
   const [title, setTitle] = useState<string>("");
   const [body, setBody] = useState<string>("");
   const [audience, setAudience] = useState<Audience>("guardians");
@@ -50,21 +50,23 @@ export default function AdminCreateAnnouncementScreen(): React.ReactElement {
     );
   }, [role, title, body, audience, priority, createMutation]);
 
-  if (role !== "admin") {
+  if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-white px-4">
-        <Text className="text-base text-slate-900">
-          Only admins can create announcements.
-        </Text>
+        <Text className="text-base text-slate-900">Loading…</Text>
       </View>
     );
+  }
+
+  if (role !== "admin") {
+    return <Redirect href="/(auth)/(tabs)" />;
   }
 
   if (schoolId == null) {
     return (
       <View className="flex-1 items-center justify-center bg-white px-4">
         <Text className="text-base text-slate-900">
-          No school assigned.
+          Only admins can create announcements.
         </Text>
       </View>
     );

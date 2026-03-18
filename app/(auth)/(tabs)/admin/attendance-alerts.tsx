@@ -1,6 +1,7 @@
 import { startOfDay, addDays } from "date-fns";
 import React, { useMemo } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { Redirect } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthContext } from "@/lib/AuthProvider";
 import { getSupabase } from "@/lib/supabase";
@@ -39,7 +40,20 @@ async function fetchTodayAttendanceAlerts(schoolId: string): Promise<AttendanceA
 }
 
 export default function AdminAttendanceAlertsScreen(): React.ReactElement {
-  const { schoolId } = useAuthContext();
+  const { schoolId, role, isLoading } = useAuthContext();
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color="#0f172a" />
+        <Text className="mt-2 text-slate-900">Loading…</Text>
+      </View>
+    );
+  }
+
+  if (role !== "admin") {
+    return <Redirect href="/(auth)/(tabs)" />;
+  }
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-attendance-alerts", schoolId],

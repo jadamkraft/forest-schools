@@ -1,5 +1,6 @@
 import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { Redirect } from "expo-router";
 import { useMemo } from "react";
 import { format } from "date-fns";
 import { useAuthContext } from "@/lib/AuthProvider";
@@ -10,7 +11,7 @@ import { useGuardianStudents } from "@/features/students";
 
 export default function ClassDetailScreen(): React.ReactElement {
   const { classId } = useLocalSearchParams<{ classId: string }>();
-  const { schoolId, user } = useAuthContext();
+  const { schoolId, user, role, isLoading } = useAuthContext();
   const profileId = user?.id ?? null;
   const { data: students } = useGuardianStudents(schoolId ?? null, profileId);
 
@@ -20,8 +21,25 @@ export default function ClassDetailScreen(): React.ReactElement {
     return { start: isoNow, end: isoNow };
   }, []);
 
-  const { data: classes, isLoading, isError, error } = useClassesForRange(schoolId, start, end);
+  const { data: classes, isLoading: isClassesLoading, isError, error } = useClassesForRange(
+    schoolId,
+    start,
+    end,
+  );
   const cls = classes?.find((c) => c.id === classId);
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color="#0f172a" />
+        <Text className="mt-2 text-slate-900">Loading…</Text>
+      </View>
+    );
+  }
+
+  if (role === "guardian") {
+    return <Redirect href="/(auth)/(tabs)/calendar" />;
+  }
 
   if (!classId || schoolId == null) {
     return (
@@ -31,7 +49,7 @@ export default function ClassDetailScreen(): React.ReactElement {
     );
   }
 
-  if (isLoading) {
+  if (isClassesLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" color="#0f172a" />

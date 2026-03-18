@@ -35,6 +35,8 @@ export default function TabsLayout(): React.ReactElement {
   }
 
   const isGuardian = role === "guardian";
+  const isAdmin = role === "admin";
+  const isStaff = role === "staff";
 
   if (waiverStatus.status === "needs-signature" && isGuardian) {
     return <Redirect href="/(auth)/waiver" />;
@@ -52,33 +54,39 @@ export default function TabsLayout(): React.ReactElement {
         },
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Attendance",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="checkbox-outline" size={size ?? 22} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="calendar"
-        options={{
-          title: "Calendar",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar-outline" size={size ?? 22} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="announcements"
-        options={{
-          title: "Announcements",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="megaphone-outline" size={size ?? 22} color={color} />
-          ),
-        }}
-      />
+      {(isAdmin || isStaff) && (
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: "Attendance",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="checkbox-outline" size={size ?? 22} color={color} />
+            ),
+          }}
+        />
+      )}
+      {(isAdmin || isGuardian || isStaff) && (
+        <Tabs.Screen
+          name="calendar"
+          options={{
+            title: "Calendar",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="calendar-outline" size={size ?? 22} color={color} />
+            ),
+          }}
+        />
+      )}
+      {(isAdmin || isGuardian) && (
+        <Tabs.Screen
+          name="announcements"
+          options={{
+            title: "Announcements",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="megaphone-outline" size={size ?? 22} color={color} />
+            ),
+          }}
+        />
+      )}
     </Tabs>
   );
 }

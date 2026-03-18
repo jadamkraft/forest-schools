@@ -1,12 +1,26 @@
 import { addDays, formatISO, startOfDay } from "date-fns";
 import React, { useMemo } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
+import { Redirect } from "expo-router";
 import { useAuthContext } from "@/lib/AuthProvider";
 import { useClassesForRange } from "@/features/calendar";
 import { CalendarDayList } from "@/features/calendar/components/CalendarDayList";
 
 export default function AdminRosterOverviewScreen(): React.ReactElement {
-  const { schoolId } = useAuthContext();
+  const { schoolId, role, isLoading } = useAuthContext();
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color="#0f172a" />
+        <Text className="mt-2 text-slate-900">Loading…</Text>
+      </View>
+    );
+  }
+
+  if (role !== "admin") {
+    return <Redirect href="/(auth)/(tabs)" />;
+  }
 
   const { start, end } = useMemo(() => {
     const today = startOfDay(new Date());

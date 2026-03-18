@@ -115,6 +115,7 @@ export type Database = {
       students: {
         Row: {
           created_at: string
+          created_by: string | null
           date_of_birth: string | null
           first_name: string
           id: string
@@ -129,6 +130,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           date_of_birth?: string | null
           first_name: string
           id?: string
@@ -161,6 +163,13 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
