@@ -7,11 +7,12 @@ import { useCallback } from "react";
 interface RsvpButtonsProps {
   classId: string;
   studentId: string;
+  currentStatus?: RsvpStatus | null;
 }
 
 const STATUSES: RsvpStatus[] = ["attending", "excused", "late"];
 
-export function RsvpButtons({ classId, studentId }: RsvpButtonsProps): React.ReactElement {
+export function RsvpButtons({ classId, studentId, currentStatus = null }: RsvpButtonsProps): React.ReactElement {
   const { schoolId, user } = useAuthContext();
   const profileId = user?.id ?? null;
 
@@ -32,10 +33,13 @@ export function RsvpButtons({ classId, studentId }: RsvpButtonsProps): React.Rea
   return (
     <View className="flex-row gap-2">
       {STATUSES.map((status) => (
+        // NOTE: We keep the primary Slate-900 text/icons on a white background.
         <TouchableOpacity
           key={status}
           onPress={() => handlePress(status)}
-          className="min-h-[60px] flex-1 items-center justify-center rounded-lg border-2 border-slate-900 bg-white px-2"
+          className={`min-h-[60px] flex-1 items-center justify-center rounded-lg border-2 border-slate-900 px-2 ${
+            currentStatus === status ? "bg-slate-50" : "bg-white"
+          }`}
           accessibilityRole="button"
           accessibilityLabel={`Mark ${status} for this class`}
         >

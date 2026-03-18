@@ -6,4 +6,5 @@ export {
   useStudents,
   studentsQueryKey,
   useLogAttendanceMutation,
+  useUpsertAttendanceLogMutation,
 } from "./api";

@@ -46,6 +46,38 @@ async function logAttendance(params: LogAttendanceParams): Promise<void> {
   if (error) throw error;
 }
 
+/**
+ * Insert if no existing log exists yet; otherwise update the most recent log.
+ * This matches the "insert/update" check-in behavior without needing a class_id column.
+ */
+async function upsertAttendanceLog(params: LogAttendanceParams): Promise<void> {
+  const supabase = getSupabase();
+  const nowIso = new Date().toISOString();
+
+  const { data: existing, error: existingError } = await supabase
+    .from("attendance_logs")
+    .select("*")
+    .eq("student_id", params.studentId)
+    .eq("school_id", params.schoolId)
+    .order("check_in_time", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existingError) throw existingError;
+
+  if (existing) {
+    const { error: updateError } = await supabase
+      .from("attendance_logs")
+      .update({ status: params.status, check_in_time: nowIso })
+      .eq("id", existing.id);
+
+    if (updateError) throw updateError;
+    return;
+  }
+
+  await logAttendance(params);
+}
+
 /** Query key factory for students (include schoolId for cache busting). */
 export function studentsQueryKey(schoolId: string | null): [string, string | null] {
   return ["students", schoolId];
@@ -75,6 +107,21 @@ export function useLogAttendanceMutation(schoolId: string | null) {
         throw new Error("Cannot log attendance without a schoolId.");
       }
       await logAttendance({
+        studentId: variables.studentId,
+        schoolId,
+        status: variables.status,
+      });
+    },
+  });
+}
+
+export function useUpsertAttendanceLogMutation(schoolId: string | null) {
+  return useMutation<void, Error, LogAttendanceMutationVariables>({
+    mutationFn: async (variables): Promise<void> => {
+      if (schoolId == null) {
+        throw new Error("Cannot log attendance without a schoolId.");
+      }
+      await upsertAttendanceLog({
         studentId: variables.studentId,
         schoolId,
         status: variables.status,

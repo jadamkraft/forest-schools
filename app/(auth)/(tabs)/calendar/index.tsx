@@ -62,12 +62,15 @@ export default function CalendarIndexScreen(): React.ReactElement {
   }
 
   const isStaff = role === "staff";
+  const isAdmin = role === "admin";
 
   return (
     <View className="flex-1 bg-white">
-      {isStaff && (
+      {(isStaff || isAdmin) && (
         <View className="flex-row items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
-          <Text className="text-2xl font-bold text-slate-900">Hello Staff</Text>
+          <Text className="text-2xl font-bold text-slate-900">
+            {isAdmin ? "Hello Admin" : "Hello Staff"}
+          </Text>
           <TouchableOpacity
             onPress={handleStaffSignOut}
             className="min-h-[60px] min-w-[60px] items-center justify-center rounded-full bg-white"

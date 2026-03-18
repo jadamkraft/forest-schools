@@ -3,9 +3,12 @@ import { z } from "zod";
 import { getSupabase } from "../../lib/supabase";
 import type { Class, RsvpStatus } from "./types";
 import { classSchema, rsvpSchema } from "./types";
+import type { Student } from "@/features/attendance";
+import { studentSchema } from "@/features/attendance";
 
 const classesArraySchema = z.array(classSchema);
 const rsvpsArraySchema = z.array(rsvpSchema);
+const studentsArraySchema = z.array(studentSchema);
 
 export interface FetchClassesForRangeParams {
   schoolId: string;
@@ -28,6 +31,40 @@ export async function fetchClassesForRange(params: FetchClassesForRangeParams): 
   return parsed as Class[];
 }
 
+interface FetchClassByIdParams {
+  schoolId: string;
+  classId: string;
+}
+
+export async function fetchClassById(params: FetchClassByIdParams): Promise<Class> {
+  const { schoolId, classId } = params;
+
+  const { data, error } = await getSupabase()
+    .from("classes")
+    .select("*")
+    .eq("school_id", schoolId)
+    .eq("id", classId)
+    .maybeSingle<Class>();
+
+  if (error) throw error;
+  if (!data) throw new Error("Class not found.");
+
+  const parsed = classSchema.parse(data);
+  return parsed as Class;
+}
+
+export function classByIdQueryKey(schoolId: string | null, classId: string | null) {
+  return ["classById", schoolId, classId] as const;
+}
+
+export function useClassById(schoolId: string | null, classId: string | null) {
+  return useQuery({
+    queryKey: classByIdQueryKey(schoolId, classId),
+    queryFn: () => fetchClassById({ schoolId: schoolId!, classId: classId! }),
+    enabled: schoolId != null && classId != null,
+  });
+}
+
 export interface FetchRsvpsForClassesParams {
   schoolId: string;
   classIds: string[];
@@ -46,6 +83,40 @@ export async function fetchRsvpsForClasses(params: FetchRsvpsForClassesParams) {
   if (error) throw error;
   const parsed = rsvpsArraySchema.parse(data ?? []);
   return parsed;
+}
+
+interface FetchStudentsByIdsParams {
+  schoolId: string;
+  studentIds: string[];
+}
+
+export async function fetchStudentsByIds(params: FetchStudentsByIdsParams): Promise<Student[]> {
+  const { schoolId, studentIds } = params;
+  if (studentIds.length === 0) return [];
+
+  const { data, error } = await getSupabase()
+    .from("students")
+    .select("*")
+    .eq("school_id", schoolId)
+    .in("id", studentIds);
+
+  if (error) throw error;
+
+  const parsed = studentsArraySchema.parse(data ?? []);
+  return parsed as Student[];
+}
+
+export function studentsByIdsQueryKey(schoolId: string | null, studentIds: string[]) {
+  return ["studentsByIds", schoolId, studentIds] as const;
+}
+
+export function useStudentsByIds(schoolId: string | null, studentIds: string[]) {
+  // Keep enabled false when we have nothing to fetch.
+  return useQuery({
+    queryKey: studentsByIdsQueryKey(schoolId, studentIds),
+    queryFn: () => fetchStudentsByIds({ schoolId: schoolId!, studentIds }),
+    enabled: schoolId != null && studentIds.length > 0,
+  });
 }
 
 export function classesQueryKey(schoolId: string | null, start: string | null, end: string | null) {

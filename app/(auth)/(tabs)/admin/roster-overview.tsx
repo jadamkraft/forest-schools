@@ -34,7 +34,7 @@ export default function AdminRosterOverviewScreen(): React.ReactElement {
 
   const {
     data: classes,
-    isLoading,
+    isLoading: isClassesLoading,
     isError,
     error,
     refetch,
@@ -48,7 +48,7 @@ export default function AdminRosterOverviewScreen(): React.ReactElement {
     );
   }
 
-  if (isLoading) {
+  if (isClassesLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" color="#0f172a" />

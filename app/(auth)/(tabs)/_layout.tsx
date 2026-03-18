@@ -38,7 +38,9 @@ export default function TabsLayout(): React.ReactElement {
   const isAdmin = role === "admin";
   const isStaff = role === "staff";
 
-  if (waiverStatus.status === "needs-signature" && isGuardian) {
+  // If role loading failed (role === null), we should still not bypass the waiver gate.
+  const isStaffOrAdmin = isAdmin || isStaff;
+  if (waiverStatus.status === "needs-signature" && (isGuardian || !isStaffOrAdmin)) {
     return <Redirect href="/(auth)/waiver" />;
   }
 

@@ -55,7 +55,13 @@ export default function AdminAttendanceAlertsScreen(): React.ReactElement {
     return <Redirect href="/(auth)/(tabs)" />;
   }
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
+  const {
+    data,
+    isLoading: isAlertsLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["admin-attendance-alerts", schoolId],
     queryFn: () => fetchTodayAttendanceAlerts(schoolId!),
     enabled: schoolId != null,
@@ -71,7 +77,7 @@ export default function AdminAttendanceAlertsScreen(): React.ReactElement {
     );
   }
 
-  if (isLoading) {
+  if (isAlertsLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" color="#0f172a" />

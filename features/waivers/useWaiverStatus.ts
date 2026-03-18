@@ -7,7 +7,7 @@ type WaiverSignature = Tables<"waiver_signatures">;
 
 type WaiverStatus =
   | { status: "loading" }
-  | { status: "needs-signature"; waiver: Waiver }
+  | { status: "needs-signature"; waiver: Waiver | null }
   | { status: "fulfilled"; waiver: Waiver | null };
 
 export function useWaiverStatus(
@@ -39,7 +39,9 @@ export function useWaiverStatus(
       if (waiverError) {
         console.error("Failed to load waiver", waiverError);
         if (isMounted) {
-          setState({ status: "fulfilled", waiver: null });
+          // Never silently grant access when we can't validate waiver status.
+          // For guardians, the layout will route to the waiver screen.
+          setState({ status: "needs-signature", waiver: null });
         }
         return;
       }
