@@ -10,19 +10,36 @@ type WaiverStatus =
   | { status: "needs-signature"; waiver: Waiver | null }
   | { status: "fulfilled"; waiver: Waiver | null };
 
+export type UseWaiverStatusOptions = {
+  /**
+   * When true, skip network calls and treat waiver as satisfied (staff/admin do not sign guardian waivers).
+   */
+  skipFetch?: boolean;
+};
+
 export function useWaiverStatus(
   schoolId: string | null | undefined,
   profileId: string | null | undefined,
+  options?: UseWaiverStatusOptions,
 ): WaiverStatus {
+  const skipFetch = options?.skipFetch === true;
   const [state, setState] = useState<WaiverStatus>({ status: "loading" });
 
   useEffect(() => {
     let isMounted = true;
 
     async function load() {
+      if (skipFetch) {
+        if (isMounted) {
+          setState({ status: "fulfilled", waiver: null });
+        }
+        return;
+      }
+
       if (!schoolId || !profileId) {
         if (isMounted) {
-          setState({ status: "loading" });
+          // Avoid infinite loading: without school scope we cannot verify signatures; gate as needs-signature.
+          setState({ status: "needs-signature", waiver: null });
         }
         return;
       }
@@ -84,7 +101,7 @@ export function useWaiverStatus(
     return () => {
       isMounted = false;
     };
-  }, [schoolId, profileId]);
+  }, [schoolId, profileId, skipFetch]);
 
   return state;
 }

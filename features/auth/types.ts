@@ -20,7 +20,12 @@ export interface AuthState {
   user: Session["user"] | null;
   schoolId: string | null;
   role: AppRole | null;
+  /** Session bootstrap (Supabase getSession / auth listener). */
   isLoading: boolean;
+  /** Profile role query in flight for the signed-in user. */
+  isRoleLoading: boolean;
+  /** Set when the role query fails; omitted or null when not applicable. */
+  roleError?: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -37,11 +42,14 @@ export function getSchoolIdFromSession(session: Session | null): string | null {
 
 /**
  * Normalize a raw profile role string into an AppRole.
- * Defaults to "guardian" for unknown or missing roles.
+ * Returns null for missing, empty, or unrecognized values (caller treats as unresolved).
  */
-export function normalizeRole(raw: string | null): AppRole {
-  if (raw === "admin" || raw === "staff" || raw === "guardian") {
-    return raw;
-  }
-  return "guardian";
+export function normalizeRole(raw: string | null): AppRole | null {
+  if (raw == null) return null;
+  const key = raw.trim().toLowerCase();
+  if (key === "") return null;
+  if (key === "admin") return "admin";
+  if (key === "staff" || key === "teacher") return "staff";
+  if (key === "guardian" || key === "parent") return "guardian";
+  return null;
 }

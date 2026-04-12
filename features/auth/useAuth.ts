@@ -8,6 +8,9 @@ export function useAuth(): AuthState {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [role, setRole] = useState<AppRole | null>(null);
+  /** Start true so we never flash the "no role" screen before the first profile fetch when a session exists. */
+  const [isRoleLoading, setIsRoleLoading] = useState<boolean>(true);
+  const [roleError, setRoleError] = useState<string | null>(null);
 
   const user = session?.user ?? null;
   const schoolId = getSchoolIdFromSession(session);
@@ -49,9 +52,14 @@ export function useAuth(): AuthState {
       if (!user) {
         if (mounted) {
           setRole(null);
+          setRoleError(null);
+          setIsRoleLoading(false);
         }
         return;
       }
+
+      setIsRoleLoading(true);
+      setRoleError(null);
 
       const supabase = getSupabase();
       const { data, error } = await supabase
@@ -65,11 +73,25 @@ export function useAuth(): AuthState {
       if (error) {
         console.error("Failed to load profile role", error);
         setRole(null);
+        setRoleError(error.message ?? "Failed to load profile role");
+        setIsRoleLoading(false);
         return;
       }
 
       const normalized = normalizeRole(data?.role ?? null);
       setRole(normalized);
+      if (data === null) {
+        setRoleError("No profile row for this account");
+      } else if (normalized === null) {
+        setRoleError(
+          data.role == null || String(data.role).trim() === ""
+            ? "Profile has no role set"
+            : "Unrecognized profile role",
+        );
+      } else {
+        setRoleError(null);
+      }
+      setIsRoleLoading(false);
     }
 
     loadProfileRole();
@@ -97,6 +119,8 @@ export function useAuth(): AuthState {
     schoolId,
     role,
     isLoading,
+    isRoleLoading,
+    roleError,
     signIn,
     signOut,
   };

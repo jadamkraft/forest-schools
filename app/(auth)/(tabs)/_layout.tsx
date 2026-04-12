@@ -1,27 +1,24 @@
 import React from "react";
 import { Redirect, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useAuthContext } from "@/lib/AuthProvider";
 import { useWaiverStatus } from "@/features/waivers/useWaiverStatus";
 
 export default function TabsLayout(): React.ReactElement {
-  const { session, schoolId, role, isLoading } = useAuthContext();
+  const { session, schoolId, role, isLoading, isRoleLoading, roleError } = useAuthContext();
 
-  const waiverStatus = useWaiverStatus(schoolId ?? null, session?.user.id ?? null);
+  const skipWaiverFetch =
+    session != null && !isRoleLoading && (role === "admin" || role === "staff");
+
+  const waiverStatus = useWaiverStatus(schoolId ?? null, session?.user.id ?? null, {
+    skipFetch: skipWaiverFetch,
+  });
 
   if (isLoading) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" accessibilityLabel="Loading" />
-      </View>
-    );
-  }
-
-  if (waiverStatus.status === "loading") {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" accessibilityLabel="Checking waiver status" />
       </View>
     );
   }
@@ -34,13 +31,38 @@ export default function TabsLayout(): React.ReactElement {
     );
   }
 
+  if (isRoleLoading) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" accessibilityLabel="Loading profile" />
+      </View>
+    );
+  }
+
+  if (role === null) {
+    return (
+      <View style={styles.roleError}>
+        <Text style={styles.roleErrorTitle}>Account setup incomplete</Text>
+        <Text style={styles.roleErrorBody}>
+          {roleError ?? "We could not determine your role for this school. Please contact support."}
+        </Text>
+      </View>
+    );
+  }
+
+  if (waiverStatus.status === "loading") {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" accessibilityLabel="Checking waiver status" />
+      </View>
+    );
+  }
+
   const isGuardian = role === "guardian";
   const isAdmin = role === "admin";
   const isStaff = role === "staff";
 
-  // If role loading failed (role === null), we should still not bypass the waiver gate.
-  const isStaffOrAdmin = isAdmin || isStaff;
-  if (waiverStatus.status === "needs-signature" && (isGuardian || !isStaffOrAdmin)) {
+  if (waiverStatus.status === "needs-signature" && isGuardian) {
     return <Redirect href="/(auth)/waiver" />;
   }
 
@@ -99,6 +121,26 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#f8fafc",
+  },
+  roleError: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 24,
+  },
+  roleErrorTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#0f172a",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  roleErrorBody: {
+    fontSize: 15,
+    color: "#0f172a",
+    textAlign: "center",
+    lineHeight: 22,
   },
 });
 
