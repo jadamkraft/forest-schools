@@ -114,13 +114,13 @@ export default function GuardianStudentsScreen(): React.ReactElement {
 
           <TouchableOpacity
             onPress={handleSubmit}
-            disabled={createMutation.isLoading}
+            disabled={createMutation.isPending}
             className="min-h-[60px] items-center justify-center rounded-xl border-2 border-slate-900 bg-white"
             accessibilityRole="button"
             accessibilityLabel="Add student"
           >
             <Text className="text-base font-semibold text-slate-900">
-              {createMutation.isLoading ? "Adding…" : "Add student"}
+              {createMutation.isPending ? "Adding…" : "Add student"}
             </Text>
           </TouchableOpacity>
         </View>
