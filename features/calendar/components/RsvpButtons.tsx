@@ -33,17 +33,16 @@ export function RsvpButtons({ classId, studentId, currentStatus = null }: RsvpBu
   return (
     <View className="flex-row gap-2">
       {STATUSES.map((status) => (
-        // NOTE: We keep the primary Slate-900 text/icons on a white background.
         <TouchableOpacity
           key={status}
           onPress={() => handlePress(status)}
           className={`min-h-[60px] flex-1 items-center justify-center rounded-lg border-2 border-slate-900 px-2 ${
-            currentStatus === status ? "bg-slate-50" : "bg-white"
+            currentStatus === status ? "bg-slate-900" : "bg-white"
           }`}
           accessibilityRole="button"
           accessibilityLabel={`Mark ${status} for this class`}
         >
-          <Text className="text-base font-semibold capitalize text-slate-900">
+          <Text className={`text-base font-semibold capitalize ${currentStatus === status ? "text-white" : "text-slate-900"}`}>
             {status}
           </Text>
         </TouchableOpacity>

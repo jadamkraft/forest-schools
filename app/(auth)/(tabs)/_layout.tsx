@@ -1,5 +1,5 @@
 import React from "react";
-import { Redirect, Tabs } from "expo-router";
+import { Redirect, Tabs, useSegments } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useAuthContext } from "@/lib/AuthProvider";
@@ -7,6 +7,7 @@ import { useWaiverStatus } from "@/features/waivers/useWaiverStatus";
 
 export default function TabsLayout(): React.ReactElement {
   const { session, schoolId, role, isLoading, isRoleLoading, roleError } = useAuthContext();
+  const segments = useSegments();
 
   const skipWaiverFetch =
     session != null && !isRoleLoading && (role === "admin" || role === "staff");
@@ -62,8 +63,25 @@ export default function TabsLayout(): React.ReactElement {
   const isAdmin = role === "admin";
   const isStaff = role === "staff";
 
+  const roleHomeHref = isStaff ? "/(auth)/(tabs)/calendar" : "/(auth)/(tabs)";
+  const tabsSegmentIndex = segments.indexOf("(tabs)");
+  const activeTopSegment = tabsSegmentIndex >= 0 ? (segments[tabsSegmentIndex + 1] ?? "index") : "index";
+  const allowedTopSegments = isGuardian
+    ? new Set(["index", "calendar", "family", "announcements"])
+    : isStaff
+      ? new Set(["calendar", "announcements"])
+      : new Set(["index", "calendar", "admin", "announcements"]);
+
   if (waiverStatus.status === "needs-signature" && isGuardian) {
     return <Redirect href="/(auth)/waiver" />;
+  }
+
+  if (!allowedTopSegments.has(activeTopSegment)) {
+    return <Redirect href={roleHomeHref} />;
+  }
+
+  if (isStaff && activeTopSegment === "index") {
+    return <Redirect href={roleHomeHref} />;
   }
 
   return (
@@ -78,13 +96,13 @@ export default function TabsLayout(): React.ReactElement {
         },
       }}
     >
-      {(isAdmin || isStaff) && (
+      {(isAdmin || isGuardian) && (
         <Tabs.Screen
           name="index"
           options={{
-            title: "Attendance",
+            title: isAdmin ? "Dashboard" : "Home",
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="checkbox-outline" size={size ?? 22} color={color} />
+              <Ionicons name={isAdmin ? "grid-outline" : "home-outline"} size={size ?? 22} color={color} />
             ),
           }}
         />
@@ -93,14 +111,36 @@ export default function TabsLayout(): React.ReactElement {
         <Tabs.Screen
           name="calendar"
           options={{
-            title: "Calendar",
+            title: isStaff ? "Home" : isAdmin ? "Roster" : "Calendar",
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="calendar-outline" size={size ?? 22} color={color} />
             ),
           }}
         />
       )}
-      {(isAdmin || isGuardian) && (
+      {isGuardian && (
+        <Tabs.Screen
+          name="family/students"
+          options={{
+            title: "Students",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="people-outline" size={size ?? 22} color={color} />
+            ),
+          }}
+        />
+      )}
+      {isAdmin && (
+        <Tabs.Screen
+          name="admin/attendance-alerts"
+          options={{
+            title: "Alerts",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="warning-outline" size={size ?? 22} color={color} />
+            ),
+          }}
+        />
+      )}
+      {(isAdmin || isGuardian || isStaff) && (
         <Tabs.Screen
           name="announcements"
           options={{
@@ -111,6 +151,10 @@ export default function TabsLayout(): React.ReactElement {
           }}
         />
       )}
+      <Tabs.Screen name="announcements/admin-create" options={{ href: null }} />
+      <Tabs.Screen name="admin/roster-overview" options={{ href: null }} />
+      {!isGuardian && <Tabs.Screen name="family/students" options={{ href: null }} />}
+      {!isAdmin && <Tabs.Screen name="admin/attendance-alerts" options={{ href: null }} />}
     </Tabs>
   );
 }

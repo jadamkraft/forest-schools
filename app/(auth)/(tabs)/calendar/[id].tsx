@@ -2,12 +2,14 @@ import React, { useCallback, useMemo } from "react";
 import { format } from "date-fns";
 import { useLocalSearchParams } from "expo-router";
 import { ScrollView, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuthContext } from "@/lib/AuthProvider";
 import { useClassById, useRsvpsForClasses, useStudentsByIds } from "@/features/calendar";
 import { RsvpButtons } from "@/features/calendar/components/RsvpButtons";
 import { useGuardianStudents } from "@/features/students";
 import { useUpsertAttendanceLogMutation, type Student } from "@/features/attendance";
+import { getSupabase } from "@/lib/supabase";
 import type { RsvpStatus } from "@/features/calendar";
 
 export default function CalendarEventDetailScreen(): React.ReactElement {
@@ -77,12 +79,46 @@ export default function CalendarEventDetailScreen(): React.ReactElement {
   );
 
   const checkInMutation = useUpsertAttendanceLogMutation(schoolId);
+  const queryClient = useQueryClient();
+
+  const { data: latestAttendanceByStudentId } = useQuery({
+    queryKey: ["event-detail-attendance", schoolId, rosterStudentIds],
+    queryFn: async (): Promise<Map<string, "present" | "absent">> => {
+      const client = getSupabase();
+      const { data, error } = await client
+        .from("attendance_logs")
+        .select("student_id,status,check_in_time")
+        .eq("school_id", schoolId!)
+        .in("student_id", rosterStudentIds)
+        .order("check_in_time", { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      const map = new Map<string, "present" | "absent">();
+      for (const row of data ?? []) {
+        if (!map.has(row.student_id)) {
+          map.set(row.student_id, row.status as "present" | "absent");
+        }
+      }
+      return map;
+    },
+    enabled: schoolId != null && isStaffOrAdmin && rosterStudentIds.length > 0,
+  });
 
   const handleCheckIn = useCallback(
     (studentId: string) => {
-      checkInMutation.mutate({ studentId, status: "present" });
+      checkInMutation.mutate(
+        { studentId, status: "present" },
+        {
+          onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: ["event-detail-attendance", schoolId] });
+          },
+        },
+      );
     },
-    [checkInMutation],
+    [checkInMutation, queryClient, schoolId],
   );
 
   const startTime = cls ? new Date(cls.starts_at) : null;
@@ -177,10 +213,7 @@ export default function CalendarEventDetailScreen(): React.ReactElement {
               <Text className="text-base text-slate-900">No RSVPs yet.</Text>
             ) : (
               rosterRows.map(({ student, status }) => (
-                <View
-                  key={student.id}
-                  className="mb-3 min-h-[60px] flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4"
-                >
+                <View key={student.id} className="mb-3 min-h-[60px] flex-row items-center justify-between rounded-xl border border-slate-200 bg-white px-4">
                   <View className="flex-1 pr-3">
                     <Text className="text-base font-semibold text-slate-900" numberOfLines={1}>
                       {student.first_name} {student.last_name}
@@ -190,11 +223,19 @@ export default function CalendarEventDetailScreen(): React.ReactElement {
 
                   <TouchableOpacity
                     onPress={() => handleCheckIn(student.id)}
-                    className="min-h-[60px] min-w-[120px] items-center justify-center rounded-lg border-2 border-slate-900 bg-white px-3"
+                    className={`min-h-[60px] min-w-[120px] items-center justify-center rounded-lg border-2 border-slate-900 px-3 ${
+                      latestAttendanceByStudentId?.get(student.id) === "present" ? "bg-slate-900" : "bg-white"
+                    }`}
                     accessibilityRole="button"
                     accessibilityLabel={`Check-in ${student.first_name} ${student.last_name}`}
                   >
-                    <Text className="text-base font-semibold text-slate-900">Check-in</Text>
+                    <Text
+                      className={`text-base font-semibold ${
+                        latestAttendanceByStudentId?.get(student.id) === "present" ? "text-white" : "text-slate-900"
+                      }`}
+                    >
+                      Check-in
+                    </Text>
                   </TouchableOpacity>
                 </View>
               ))
